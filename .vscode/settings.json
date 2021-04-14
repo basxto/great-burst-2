@@ -1,0 +1,30 @@
+{
+    "files.associations": {
+        "*.c": "c",
+        "*.h": "c",
+        "*.asm": "gbz80",
+        "*.s": "gbz80",
+        "*.rel": "sdld"
+    },
+    "files.exclude": {
+        "**/*.zip": true,
+        "**/*.rel": true,
+        "**/*.lst": true,
+        "**/*.sym": true,
+        "**/*.ihx": true,
+        "**/*.lk": true,
+        "**/*.noi": true,
+        "**/*.map": true
+    },
+    "files.trimTrailingWhitespace": true,
+    "shellcheck.useWorkspaceRootAsCwd": true,
+    "C_Cpp.default.intelliSenseMode": "gcc-x64",
+    "C_Cpp.default.systemIncludePath" : [
+        "/usr/share/gbdk-2020/include/",
+        "/usr/share/gbdk-2020/include/asm/",
+        "/usr/share/sdcc/include/"
+    ],
+    "C_Cpp.clang_format_sortIncludes": false
+
+
+}
