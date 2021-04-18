@@ -32,8 +32,9 @@ BINDIR=bin/
 VPATH=src:$(BUILDDIR)
 
 EMU?=sameboy
-pngconvert?=./res/superfamiconv
-xxd?=xxd
+SFC?=./res/SuperFamiconv/bin/superfamiconv
+SFCFLAGS?=-Mgb --no-remap
+XXD?=xxd
 
 
 ROMDEBUG?=0
@@ -61,6 +62,9 @@ endif
 endif
 endif
 
+OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main gfx))
+GFX=$(addprefix $(BUILDDIR),$(addsuffix .cdata, squont8ng.1bpp))
+
 ########################################################
 
 .PHONY: build run spaceleft statistics clean
@@ -70,10 +74,13 @@ build: $(BUILDDIR) $(BINDIR) $(BINDIR)$(ROM).$(EXT)
 %/:
 	mkdir -p $@
 
-$(BINDIR)$(ROM).$(EXT): $(BUILDDIR)main.rel
+$(BINDIR)$(ROM).$(EXT): $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $^
 
 $(BUILDDIR)%.asm: %.c
+	$(CC) $(CFLAGS) -S -o $@ $^
+
+$(BUILDDIR)gfx.asm: gfx.c $(GFX)
 	$(CC) $(CFLAGS) -S -o $@ $^
 
 # generated
@@ -84,11 +91,21 @@ $(BUILDDIR)%.rel: $(BUILDDIR)%.asm
 $(BUILDDIR)%.rel: %.s
 	$(AS) $(ASFLAGS) -o $@ $^
 
-$(BUILDDIR)%.2bpp: pix/%.png
-	echo "TODO"
+# .1bpp and .2bpp
+$(BUILDDIR)%bpp.cdata: $(BUILDDIR)%bpp
+	cat $^ | xxd -i > $@
 
-$(BUILDDIR)%.1bpp: pix/%.png
-	echo "TODO"
+$(BUILDDIR)%.2bpp: gfx/%.png
+	$(SFC) tiles $(SFCFLAGS) -i $^ -d $@
+
+$(BUILDDIR)%.2bpp.png: gfx/%.png
+	$(SFC) tiles $(SFCFLAGS) -i $^ -o $@
+
+$(BUILDDIR)%.1bpp: gfx/%.png
+	$(SFC) tiles $(SFCFLAGS) -B 1 -i $^ -d $@
+
+$(BUILDDIR)%.1bpp.png: gfx/%.png
+	$(SFC) tiles $(SFCFLAGS) -B 1 -i $^ -o $@
 
 FILE_ID.DIZ: README.md
 	echo "$(NAME)" | tr '[:lower:]' '[:upper:]' > $@
@@ -101,7 +118,7 @@ run: build
 
 clean:
 	find bin/ -type f -regex '.*.\(ihx\|map\|noi\|cdb\)' -delete
-	find $(BUILDDIR) -type f -regex '.*.\(rel\|c\|h\|asm\|2bpp\|tilemap\|pal\|adb\)' -delete
+	find $(BUILDDIR) -type f -regex '.*.\(rel\|c\|h\|cdata\|asm\|2bpp\|1bpp\|tilemap\|pal\|adb\|png\)' -delete
 
 spaceleft: build
 	res/romusage/bin/romusage $(BINDIR)$(ROM).noi -g -E
