@@ -62,8 +62,8 @@ endif
 endif
 endif
 
-OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main gfx))
-GFX=$(addprefix $(BUILDDIR),$(addsuffix .cdata, squont8ng.1bpp))
+OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main gfx game))
+GFX=$(addprefix $(BUILDDIR),$(addsuffix .cdata, squont8ng.1bpp great_burst_fg.2bpp great_burst_blocks.2bpp))
 
 ########################################################
 
@@ -77,11 +77,14 @@ build: $(BUILDDIR) $(BINDIR) $(BINDIR)$(ROM).$(EXT)
 $(BINDIR)$(ROM).$(EXT): $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $^
 
-$(BUILDDIR)%.asm: %.c
-	$(CC) $(CFLAGS) -S -o $@ $^
+$(BUILDDIR)%.asm: %.c %.h
+	$(CC) $(CFLAGS) -S -o $@ $<
 
-$(BUILDDIR)gfx.asm: gfx.c $(GFX)
-	$(CC) $(CFLAGS) -S -o $@ $^
+$(BUILDDIR)main.asm: main.c gfx.c gfx.h
+	$(CC) $(CFLAGS) -S -o $@ $<
+
+$(BUILDDIR)gfx.asm: gfx.c gfx.h $(GFX)
+	$(CC) $(CFLAGS) -S -o $@ $<
 
 # generated
 $(BUILDDIR)%.rel: $(BUILDDIR)%.asm
