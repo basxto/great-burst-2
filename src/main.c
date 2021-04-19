@@ -28,6 +28,6 @@ void init(){
 int main(){
     init();
     waitpad(J_START);
-    load_level(0);
+    load_level(1);
     return 0;
 }

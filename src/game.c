@@ -1,4 +1,5 @@
 #include <gb/gb.h>
+#include <gb/hardware.h>
 #include <stdbool.h>
 #include <string.h>
 #include "game.h"
@@ -7,14 +8,16 @@
 
 // has position (x,y) and direction (dx,dy)
 // if there is a block on left and right and ball 16x16, we have x max 128
-struct {
+typedef struct {
     uint8_t x;
     int8_t dx;
     uint8_t y;
     int8_t dy;
-} ball;
+} Ball;
+Ball ball;
 
 Level current_level;
+volatile uint8_t block_line_counter;
 
 // move and collide
 void move_ball(){
@@ -57,7 +60,7 @@ void render_level(){
             uint8_t base = (0x80 - 6) + (current_level[y][x] * 6);
             for(uint8_t i = 0; i < 6; ++i)
                 map[i] = base++;
-            set_bkg_tiles(x*3+1, y*2+1, 3, 2, map);
+            set_bkg_tiles(x*3+1, y*2+2, 3, 2, map);
         }
     }
 }
@@ -65,6 +68,36 @@ void render_level(){
 // set up game specific interrupts and such
 void init_game(){
 
+}
+
+// scanline effect for the blocks
+/*
+void block_interrupt(){
+    if(--block_line_counter == 0){
+        block_line_counter = 12;
+        SCY_REG += 4;
+    }
+}*/
+
+void block_interrupt() __naked{
+    __asm__("
+    ld	hl, #_block_line_counter
+    dec (hl)
+	ret	NZ
+	ld	(hl), #0x0c
+	ldh	a, (_SCY_REG)
+	add	a, #0x04
+	ldh	(_SCY_REG), a
+	ret
+    ");
+}
+
+// handles the ball
+void ball_interrupt(){
+    SCY_REG = 0;
+    block_line_counter = 11;
+    //move_ball();
+    //render_ball();
 }
 
 // load the blocks and such
@@ -75,11 +108,17 @@ void load_level(uint8_t lvl){
     ball.dy = 2;
     memcpy(current_level, level[lvl], LEVEL_HEIGHT*LEVEL_WIDTH);
     render_level();
+    block_line_counter = 13;
+    CRITICAL {
+        STAT_REG = 0x18;
+        add_LCD(block_interrupt);
+        add_VBL(ball_interrupt);
+    }
+    set_interrupts(VBL_IFLAG | LCD_IFLAG);
     while(true){
-        move_ball();
-        render_ball();
-        //render_level();
-        wait_vbl_done();
+        //move_ball();
+        //render_ball();
+        //wait_vbl_done();
         wait_vbl_done();
     }
 }
