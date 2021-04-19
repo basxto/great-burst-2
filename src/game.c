@@ -71,34 +71,15 @@ void init_game(){
 
 }
 
-// scanline effect for the blocks
-/*
-void block_interrupt(){
-    if(--block_line_counter == 0){
-        block_line_counter = 12;
-        SCY_REG += 4;
-    }
-}*/
-
-void block_interrupt() __naked{
-    __asm__("
-    ld	hl, #_block_line_counter
-    dec (hl)
-	ret	NZ
-	ld	(hl), #0x0c
-	ldh	a, (_SCY_REG)
-	add	a, #0x04
-	ldh	(_SCY_REG), a
-	ret
-    ");
-}
-
+// LYC effect for block scaling
 void block_bare_interrupt() __naked{
     __asm__("
     push af
+    ; skip 4px
     ldh	a, (_SCY_REG)
     add	a, #0x04
     ldh	(_SCY_REG), a
+    ; prepare next call
     ldh	a, (_LYC_REG)
     add	a, #0xc
     ldh	(_LYC_REG), a
@@ -129,7 +110,6 @@ void load_level(uint8_t lvl){
     CRITICAL {
         LYC_REG = 16+12;
         STAT_REG = 0x40;
-        //add_LCD(block_interrupt);
         add_VBL(ball_interrupt);
     }
     set_interrupts(VBL_IFLAG | LCD_IFLAG);
