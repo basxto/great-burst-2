@@ -17,6 +17,7 @@ typedef struct {
 Ball ball;
 
 Level current_level;
+// gets used by interrupt_hack.s
 volatile uint8_t block_line_counter;
 
 // move and collide
@@ -92,12 +93,28 @@ void block_interrupt() __naked{
     ");
 }
 
+void block_bare_interrupt() __naked{
+    __asm__("
+    push af
+    ldh	a, (_SCY_REG)
+    add	a, #0x04
+    ldh	(_SCY_REG), a
+    ldh	a, (_LYC_REG)
+    add	a, #0xc
+    ldh	(_LYC_REG), a
+1$:
+    ldh	a, (_STAT_REG)
+    and	#0x02		; Check if in LCD modes 0 or 1
+    jr 	NZ, 1$
+    pop af
+    reti
+    ");
+}
+
 // handles the ball
 void ball_interrupt(){
     SCY_REG = 0;
-    block_line_counter = 11;
-    //move_ball();
-    //render_ball();
+    LYC_REG = 16+12;
 }
 
 // load the blocks and such
@@ -110,15 +127,16 @@ void load_level(uint8_t lvl){
     render_level();
     block_line_counter = 13;
     CRITICAL {
-        STAT_REG = 0x18;
-        add_LCD(block_interrupt);
+        LYC_REG = 16+12;
+        STAT_REG = 0x40;
+        //add_LCD(block_interrupt);
         add_VBL(ball_interrupt);
     }
     set_interrupts(VBL_IFLAG | LCD_IFLAG);
     while(true){
-        //move_ball();
-        //render_ball();
-        //wait_vbl_done();
+        move_ball();
+        render_ball();
+        wait_vbl_done();
         wait_vbl_done();
     }
 }

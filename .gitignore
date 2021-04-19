@@ -7,7 +7,6 @@
 *.o
 *.sym
 *.asm
-*.s
 *.cdb
 *.adb
 *.lk
