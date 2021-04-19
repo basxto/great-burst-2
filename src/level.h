@@ -3,6 +3,6 @@
 #include <stdint.h>
 #define LEVEL_WIDTH (6U)
 #define LEVEL_HEIGHT (8U)
-typedef uint8_t Level[LEVEL_HEIGHT][LEVEL_WIDTH];
+typedef uint8_t Level[LEVEL_WIDTH][LEVEL_HEIGHT];
 extern const Level level[];
 #endif

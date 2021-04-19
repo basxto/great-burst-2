@@ -56,9 +56,9 @@ void render_ball(){
 
 void render_level(){
     uint8_t map[6];
-    for(uint8_t y = 0; y < LEVEL_HEIGHT; ++y){
-        for(uint8_t x = 0; x < LEVEL_WIDTH; ++x){
-            uint8_t base = (0x80 - 6) + (current_level[y][x] * 6);
+    for(uint8_t x = 0; x < LEVEL_WIDTH; ++x){
+        for(uint8_t y = 0; y < LEVEL_HEIGHT; ++y){
+            uint8_t base = (0x80 - 6) + (current_level[x][y] * 6);
             for(uint8_t i = 0; i < 6; ++i)
                 map[i] = base++;
             set_bkg_tiles(x*3+1, y*2+2, 3, 2, map);
@@ -96,6 +96,8 @@ void block_bare_interrupt() __naked{
 void ball_interrupt(){
     SCY_REG = 0;
     LYC_REG = 16+12;
+    //move_ball();
+    //render_ball();
 }
 
 // load the blocks and such
