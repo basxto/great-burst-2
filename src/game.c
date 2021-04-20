@@ -86,11 +86,11 @@ void block_bare_interrupt() __naked{
     push af
     ; skip 4px
     ldh	a, (_SCY_REG)
-    add	a, #0x04
+    add	a, #0x02
     ldh	(_SCY_REG), a
     ; prepare next call
     ldh	a, (_LYC_REG)
-    add	a, #0xc
+    add	a, #0x6
     ldh	(_LYC_REG), a
 1$:
     ldh	a, (_STAT_REG)
@@ -104,7 +104,7 @@ void block_bare_interrupt() __naked{
 // handles the ball
 void ball_interrupt(){
     SCY_REG = 0;
-    LYC_REG = 16+12;
+    LYC_REG = 16+6;
     //move_ball();
     //render_ball();
 }
@@ -119,7 +119,7 @@ void load_level(uint8_t lvl){
     render_level();
     block_line_counter = 13;
     CRITICAL {
-        LYC_REG = 16+12;
+        LYC_REG = 16+6;
         STAT_REG = 0x40;
         add_VBL(ball_interrupt);
     }
