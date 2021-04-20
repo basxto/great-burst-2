@@ -20,6 +20,9 @@ Level current_level;
 // gets used by interrupt_hack.s
 volatile uint8_t block_line_counter;
 
+// ball is 12x12
+// block is 12x24
+// *4/3 => 16x16 16x32
 // move and collide
 void move_ball(){
     bool mirror_v = false, mirror_h = false;
@@ -27,16 +30,16 @@ void move_ball(){
     if((uint8_t)ball.x < ball.dx){
         mirror_h = true;
         ball.x = 0;
-    }else if(ball.x - ball.dx > 160-16-16){
+    }else if(ball.x - ball.dx > 160-12-16){
         mirror_h = true;
-        ball.x = 160-16-16;
+        ball.x = 160-12-16;
     }
     if((uint8_t)ball.y < ball.dy){
         mirror_v = true;
         ball.y = 0;
-    }else if(ball.y - ball.dy > 144-16-16){
+    }else if(ball.y - ball.dy > 144-12-16){
         mirror_v = true;
-        ball.y = 144-16-16;
+        ball.y = 144-12-16;
     }
     if(mirror_h)
         ball.dx *= -1;
