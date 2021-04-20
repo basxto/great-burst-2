@@ -27,31 +27,40 @@ void move_ball(){
     if((uint8_t)ball.x < ball.dx){
         mirror_h = true;
         ball.x = 0;
-    }else if(ball.x - ball.dx > 160-16){
+    }else if(ball.x - ball.dx > 160-16-16){
         mirror_h = true;
-        ball.x = 160-16;
+        ball.x = 160-16-16;
     }
     if((uint8_t)ball.y < ball.dy){
         mirror_v = true;
         ball.y = 0;
-    }else if(ball.y - ball.dy > 144-16){
+    }else if(ball.y - ball.dy > 144-16-16){
         mirror_v = true;
-        ball.y = 144-16;
+        ball.y = 144-16-16;
     }
     if(mirror_h)
         ball.dx *= -1;
     if(mirror_v)
         ball.dy *= -1;
+    uint8_t pos_x = 0;
+    uint8_t pos_y = 0;
+    for(uint8_t x = 0; x < LEVEL_WIDTH; ++x){
+        for(uint8_t y = 0; y < LEVEL_HEIGHT; ++y){
+            pos_y += 12;
+        }
+        pos_y = 0;
+        pos_x += 24;
+    }
     ball.x -= ball.dx;
     ball.y -= ball.dy;
 }
 
 // render the struct to a sprite
 void render_ball(){
-    move_sprite(0, ball.x+8, ball.y+16);
-    move_sprite(1, ball.x+16, ball.y+16);
-    move_sprite(2, ball.x+8, ball.y+24);
-    move_sprite(3, ball.x+16, ball.y+24);
+    move_sprite(0, ball.x+8+8, ball.y+16+16);
+    move_sprite(1, ball.x+16+8, ball.y+16+16);
+    move_sprite(2, ball.x+8+8, ball.y+24+16);
+    move_sprite(3, ball.x+16+8, ball.y+24+16);
 }
 
 void render_level(){
