@@ -75,6 +75,15 @@ build: $(BUILDDIR) $(BINDIR) $(BINDIR)$(ROM).$(EXT)
 	mkdir -p $@
 
 $(BINDIR)$(ROM).$(EXT): $(OBJ)
+ifeq ($(ROMDEBUG), 9)
+	rm -f $(BINDIR)$(ROM).cdb
+endif
+ifeq ($(ROMDEBUG), 0)
+	rm -f $(BINDIR)$(ROM).cdb
+endif
+ifeq ($(ROMDEBUG), 1)
+	rm -f $(BINDIR)$(ROM).cdb
+endif
 	$(LD) $(LDFLAGS) -o $@ $^
 
 $(BUILDDIR)%.asm: %.c %.h
