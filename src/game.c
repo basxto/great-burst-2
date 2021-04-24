@@ -18,7 +18,8 @@ Ball ball;
 
 Level current_level;
 // gets used by interrupt_hack.s
-volatile uint8_t block_line_counter;
+// [0] is the variable, rest are offsets Y, X, Y, X
+extern volatile uint8_t offset_array [(12*4)+1];
 
 // ball is 12x12
 // block is 12x24
@@ -26,6 +27,7 @@ volatile uint8_t block_line_counter;
 // move and collide
 void move_ball(){
     bool mirror_v = false, mirror_h = false;
+
     // bounce at screen borders
     if((uint8_t)ball.x < ball.dx){
         mirror_h = true;
@@ -41,10 +43,16 @@ void move_ball(){
         mirror_v = true;
         ball.y = 144-12-16;
     }
+
+    // rescale from 12 to 16
+    //volatile uint8_t ball_x16 = (uint8_t)(((uint16_t)ball.x*4U)/3U);
+    //volatile uint8_t ball_y16 = (uint8_t)(((uint16_t)ball.y*4U)/3U);
+
     if(mirror_h)
         ball.dx *= -1;
     if(mirror_v)
         ball.dy *= -1;
+
     uint8_t pos_x = 0;
     uint8_t pos_y = 0;
     for(uint8_t x = 0; x < LEVEL_WIDTH; ++x){
@@ -80,49 +88,46 @@ void render_level(){
 
 // set up game specific interrupts and such
 void init_game(){
-
-}
-
-// LYC effect for block scaling
-void block_bare_interrupt() __naked{
-    __asm__("
-    push af
-    ; skip 4px
-    ldh	a, (_SCY_REG)
-    add	a, #0x02
-    ldh	(_SCY_REG), a
-    ; prepare next call
-    ldh	a, (_LYC_REG)
-    add	a, #0x6
-    ldh	(_LYC_REG), a
-1$:
-    ldh	a, (_STAT_REG)
-    and	#0x02		; Check if in LCD modes 0 or 1
-    jr 	NZ, 1$
-    pop af
-    reti
-    ");
-}
-
-// handles the ball
-void ball_interrupt(){
-    SCY_REG = 0;
-    LYC_REG = 16+6;
-    //move_ball();
-    //render_ball();
-}
-
-// load the blocks and such
-void load_level(uint8_t lvl){
+    uint8_t i;
     ball.x = 31;
     ball.dx = 1;
     ball.y = 33;
     ball.dy = 2;
+    offset_array[0] = 0;
+    /*for(i = 1; i < (12*4); i+=2){
+        offset_array[i] = 0;
+    }*/
+    for(i = 1; i < (12*4); ++i){
+        offset_array[i] = i+1;
+    }
+    for(i = 2; i < (12*4); i+=2){
+        offset_array[i] = 0;
+    }
+    // would be defined per level
+    offset_array[4*4] = 12;
+    offset_array[4*4+2] = 12;
+    offset_array[6*4] = 12;
+    offset_array[6*4+2] = 12;
+}
+
+
+// handles the ball
+void ball_interrupt(){
+    SCY_REG = 0;
+    SCX_REG = 0;
+    LYC_REG = 16+5;
+    //move_ball();
+    //render_ball();
+    offset_array[0] = 0;
+}
+
+// load the blocks and such
+void load_level(uint8_t lvl){
+    init_game();
     memcpy(current_level, level[lvl], LEVEL_HEIGHT*LEVEL_WIDTH);
     render_level();
-    block_line_counter = 13;
     CRITICAL {
-        LYC_REG = 16+6;
+        LYC_REG = 16+5;
         STAT_REG = 0x40;
         add_VBL(ball_interrupt);
     }

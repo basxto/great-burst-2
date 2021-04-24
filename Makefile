@@ -25,7 +25,7 @@ ARFLAGS=
 AS=$(LCC)
 ASFLAGS=-c
 LD=$(LCC)
-LDFLAGS=-Wm-yn"$$(echo "$(NAME)" | tr -d ' ' | tr '[:lower:]' '[:upper:]')" -Wm-yt0x03 -Wm-ya1 -Wl-j -Wm-yS -Wl-w -Wl-q
+LDFLAGS=-Wm-yn"$$(echo "$(NAME)" | tr -d ' ' | tr '[:lower:]' '[:upper:]')" -Wm-yt0x03 -Wm-ya1 -Wl-j -Wm-yS -Wl-w
 
 BUILDDIR=build/
 BINDIR=bin/
