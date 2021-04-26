@@ -5,9 +5,9 @@ _offset_array::
     .area    _LCDVEC_HEADER (ABS)
     .org    0x48        ; LCD
 .int_LCD:
-    ;jp    _block_bare_interrupt
+    jp    _block_bare_interrupt
     ; variables edfined in game.c
-    ;.area _CODE
+    .area _CODE
 ; hblank only lasts 85 to 208 dots (20 to 49 us) depending on previous mode 3 duration
 ; we are at 192/220
 _block_bare_interrupt::
@@ -48,7 +48,3 @@ _block_bare_interrupt::
     pop af
     reti
     ; we always exit during mode 0 ;)
-
-HBlankHandler::	; 40 cycles
-	push	af		; 4
-	push	hl		; 4

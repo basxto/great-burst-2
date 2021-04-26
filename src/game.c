@@ -5,6 +5,11 @@
 #include "game.h"
 #include "level.h"
 
+#define BALL_DIAMETER (12U)
+#define BLOCK_HEIGHT (12U)
+#define BLOCK_WIDTH (24U)
+#define SCREEN_HEIGHT (144U)
+#define SCREEN_WIDTH (160U)
 
 // has position (x,y) and direction (dx,dy)
 // if there is a block on left and right and ball 16x16, we have x max 128
@@ -16,10 +21,13 @@ typedef struct {
 } Ball;
 Ball ball;
 
+// these offsets are relevant for rendering
 Level current_level;
+// offsets relevant for the ball's collision detection
+uint8_t current_real_offsets;
 // gets used by interrupt_hack.s
 // [0] is the variable, rest are offsets Y, X, Y, X
-extern volatile uint8_t offset_array [(12*4)+1];
+extern volatile uint8_t offset_array [(SCREEN_HEIGHT/12*4)+1];
 
 // ball is 12x12
 // block is 12x24
@@ -32,16 +40,16 @@ void move_ball(){
     if((uint8_t)ball.x < ball.dx){
         mirror_h = true;
         ball.x = 0;
-    }else if(ball.x - ball.dx > 160-12-16){
+    }else if(ball.x - ball.dx > SCREEN_WIDTH-BALL_DIAMETER-16){
         mirror_h = true;
-        ball.x = 160-12-16;
+        ball.x = SCREEN_WIDTH-BALL_DIAMETER-16;
     }
     if((uint8_t)ball.y < ball.dy){
         mirror_v = true;
         ball.y = 0;
-    }else if(ball.y - ball.dy > 144-12-16){
+    }else if(ball.y - ball.dy > SCREEN_HEIGHT-BALL_DIAMETER-16){
         mirror_v = true;
-        ball.y = 144-12-16;
+        ball.y = SCREEN_HEIGHT-BALL_DIAMETER-16;
     }
 
     // rescale from 12 to 16
@@ -67,6 +75,8 @@ void move_ball(){
 }
 
 // render the struct to a sprite
+// 8 on x are offscreen and 8 further the border
+// 16 on y are offscreen and 16 further the border
 void render_ball(){
     move_sprite(0, ball.x+8+8, ball.y+16+16);
     move_sprite(1, ball.x+16+8, ball.y+16+16);
@@ -78,7 +88,7 @@ void render_level(){
     uint8_t map[6];
     for(uint8_t x = 0; x < LEVEL_WIDTH; ++x){
         for(uint8_t y = 0; y < LEVEL_HEIGHT; ++y){
-            uint8_t base = (0x80 - 6) + (current_level[x][y] * 6);
+            uint8_t base = (0x80 - 6) + (current_level.map[x][y] * 6);
             for(uint8_t i = 0; i < 6; ++i)
                 map[i] = base++;
             set_bkg_tiles(x*3+1, y*2+2, 3, 2, map);
@@ -103,11 +113,6 @@ void init_game(){
     for(i = 2; i < (12*4); i+=2){
         offset_array[i] = 0;
     }
-    // would be defined per level
-    offset_array[4*4] = 12;
-    offset_array[4*4+2] = 12;
-    offset_array[6*4] = 12;
-    offset_array[6*4+2] = 12;
 }
 
 
@@ -124,7 +129,15 @@ void ball_interrupt(){
 // load the blocks and such
 void load_level(uint8_t lvl){
     init_game();
-    memcpy(current_level, level[lvl], LEVEL_HEIGHT*LEVEL_WIDTH);
+    memcpy(current_level.map, level[lvl].map, LEVEL_HEIGHT*LEVEL_WIDTH);
+    memcpy(current_level.offset, level[lvl].offset, 8);
+    memcpy(current_level.speed, level[lvl].speed, 8);
+
+    // copy offsets
+    for(uint8_t i = 1; i < 8; ++i){
+        offset_array[i*4] = current_level.offset[i-1];
+        offset_array[i*4+2] = current_level.offset[i-1];
+    }
     render_level();
     CRITICAL {
         LYC_REG = 16+5;
@@ -133,6 +146,12 @@ void load_level(uint8_t lvl){
     }
     set_interrupts(VBL_IFLAG | LCD_IFLAG);
     while(true){
+        // move block
+        for(uint8_t i = 1; i < 8; ++i){
+            offset_array[i*4] += current_level.speed[i-1];
+            offset_array[i*4+2] += current_level.speed[i-1];
+        }
+        // move ball
         move_ball();
         render_ball();
         wait_vbl_done();
