@@ -148,10 +148,20 @@ void load_level(uint8_t lvl){
     while(true){
         // move block
         for(uint8_t i = 1; i < 8; ++i){
-            offset_array[i*4] += current_level.speed[i-1];
-            offset_array[i*4+2] += current_level.speed[i-1];
+            uint8_t offset = current_level.speed[i-1] / 2;
+            offset_array[i*4] += offset;
+            offset_array[i*4+2] += offset;
         }
-        // move ball
+        move_ball();
+        render_ball();
+        wait_vbl_done();
+        wait_vbl_done();
+        // move block
+        for(uint8_t i = 1; i < 8; ++i){
+            uint8_t offset = current_level.speed[i-1] - (current_level.speed[i-1] / 2);
+            offset_array[i*4] += offset;
+            offset_array[i*4+2] += offset;
+        }
         move_ball();
         render_ball();
         wait_vbl_done();
