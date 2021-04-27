@@ -1,5 +1,6 @@
 #include <gb/gb.h>
 #include <gb/hardware.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include "game.h"
@@ -10,6 +11,10 @@
 #define BLOCK_WIDTH (24U)
 #define SCREEN_HEIGHT (144U)
 #define SCREEN_WIDTH (160U)
+
+// least and most significant bit can be checked cheaper
+#define VERTICAL (0x1U)
+#define HORIZONTAL (0x80U)
 
 // has position (x,y) and direction (dx,dy)
 // if there is a block on left and right and ball 16x16, we have x max 128
@@ -36,14 +41,33 @@ uint8_t collide_block(uint8_t x, uint8_t y, uint8_t ball_x){
     if(y >= 8)
         return 0;
 
-    // TODO: better bounding box
-    if(
-        ((ball_x > x*24 && ball_x < (x+1)*24) || (ball_x+12 > x*24 && ball_x+12 < (x+1)*24)) &&
-        ((ball.y > y*12 && ball.y< (y+1)*12) || (ball.y+12  > y*12 && ball.y+12 < (y+1)*12))
-      ){
-        if(current_level.map[x][y] != 0)
-            return 1;
-      }
+    // offset by block width/height to avoid negative numbers
+    // + ball radius to get ball center
+    uint8_t relative_x = ball_x - x*24 + 24 + 6;
+    uint8_t relative_y = ball.y - y*12 + 12 + 6;
+
+    // break it down to circle-line intersections
+
+    // get closest point on the edge
+    uint8_t closest_x = (relative_x < 24 ? 24 : (relative_x > 2*24 ? 2*24 : relative_x));
+    uint8_t closest_y = (relative_y < 12 ? 12 : (relative_y > 2*12 ? 2*12 : relative_y));
+
+    // deltas
+    uint8_t dx = abs(closest_x - relative_x);
+    uint8_t dy = abs(closest_y - relative_y);
+    // implicit integer promotion, since values can get too big
+    if(dx*dx + dy*dy <= 12*12){
+        dy *= 2; // make the 24x12 rectangle a square
+        if(current_level.map[x][y] != 0){
+            if(dx == dy)
+                return VERTICAL | HORIZONTAL;
+            else if(dx > dy)
+                return HORIZONTAL;
+            else
+                return VERTICAL;
+        }
+    }
+
     return 0;
 }
 
