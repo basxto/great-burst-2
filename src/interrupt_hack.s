@@ -1,7 +1,3 @@
-    .area _DATA
-    ; our own variable
-_offset_array::
-    .ds 49
     .area    _LCDVEC_HEADER (ABS)
     .org    0x48        ; LCD
 .int_LCD:

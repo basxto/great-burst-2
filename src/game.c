@@ -27,7 +27,25 @@ Level current_level;
 uint8_t current_real_offsets;
 // gets used by interrupt_hack.s
 // [0] is the variable, rest are offsets Y, X, Y, X
-extern volatile uint8_t offset_array [(SCREEN_HEIGHT/12*4)+1];
+volatile uint8_t offset_array [(SCREEN_HEIGHT/12*4)+1];
+
+// x,y of block to check
+// adjusted x coordinate of ball
+uint8_t collide_block(uint8_t x, uint8_t y, uint8_t ball_x){
+    // we only have 8 rows of bricks
+    if(y >= 8)
+        return 0;
+
+    // TODO: better bounding box
+    if(
+        ((ball_x > x*24 && ball_x < (x+1)*24) || (ball_x+12 > x*24 && ball_x+12 < (x+1)*24)) &&
+        ((ball.y > y*12 && ball.y< (y+1)*12) || (ball.y+12  > y*12 && ball.y+12 < (y+1)*12))
+      ){
+        if(current_level.map[x][y] != 0)
+            return 1;
+      }
+    return 0;
+}
 
 // ball is 12x12
 // block is 12x24
@@ -55,6 +73,24 @@ void move_ball(){
     // rescale from 12 to 16
     //volatile uint8_t ball_x16 = (uint8_t)(((uint16_t)ball.x*4U)/3U);
     //volatile uint8_t ball_y16 = (uint8_t)(((uint16_t)ball.y*4U)/3U);
+    volatile uint8_t row = ball.y / 12;
+    //ball with row offset of first overlapping row
+    volatile uint8_t ball_x1 = ball.x + offset_array[row*4];
+    // and second row
+    volatile uint8_t ball_x2 = ball.x + offset_array[(row+1)*4];
+
+    if(collide_block(ball_x1/24, row, ball_x1) != 0){
+        mirror_v = true;
+    }
+    if(collide_block(ball_x1/24+1, row, ball_x1) != 0){
+        mirror_v = true;
+    }
+    if(collide_block(ball_x2/24, row+1, ball_x1) != 0){
+        mirror_v = true;
+    }
+    if(collide_block(ball_x2/24+1, row+1, ball_x1) != 0){
+        mirror_v = true;
+    }
 
     if(mirror_h)
         ball.dx *= -1;
@@ -101,7 +137,7 @@ void init_game(){
     uint8_t i;
     ball.x = 31;
     ball.dx = 1;
-    ball.y = 33;
+    ball.y = 95;
     ball.dy = 2;
     offset_array[0] = 0;
     /*for(i = 1; i < (12*4); i+=2){
