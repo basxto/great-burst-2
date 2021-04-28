@@ -6,6 +6,7 @@
 #include <string.h>
 #include "game.h"
 #include "level.h"
+#include "plonger.h"
 
 #define BALL_DIAMETER (12U)
 #define BLOCK_HEIGHT (12U)
@@ -146,6 +147,9 @@ void move_ball(){
     }
     ball.x -= ball.dx;
     ball.y -= ball.dy;
+
+    if(mirror != 0)
+        plonger(2);
 }
 
 // render the struct to a sprite

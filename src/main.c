@@ -7,6 +7,13 @@ const char text_press_start[] = "PRESS START!";
 const char text_won[] = "YOU WON!";
 
 void init(){
+
+    // enable sound on all channels
+    NR52_REG = 0x80;
+    NR50_REG = 0x77;
+    NR51_REG = 0xFF;
+    // set nicer palettes etc
+    cgb_compatibility();
     // init game elements
     set_sprite_data(great_burst_fg_start, great_burst_fg_size, great_burst_fg_data);
 
