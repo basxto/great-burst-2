@@ -74,49 +74,38 @@ uint8_t collide_block(uint8_t x, uint8_t y, uint8_t ball_x){
 // *4/3 => 16x16 16x32
 // move and collide
 void move_ball(){
-    bool mirror_v = false, mirror_h = false;
+    uint8_t mirror = 0;
 
     // bounce at screen borders
     if((uint8_t)ball.x < ball.dx){
-        mirror_h = true;
+        mirror |= HORIZONTAL;
         ball.x = 0;
     }else if(ball.x - ball.dx > SCREEN_WIDTH-BALL_DIAMETER-16){
-        mirror_h = true;
+        mirror |= HORIZONTAL;
         ball.x = SCREEN_WIDTH-BALL_DIAMETER-16;
     }
     if((uint8_t)ball.y < ball.dy){
-        mirror_v = true;
+        mirror |= VERTICAL;
         ball.y = 0;
     }else if(ball.y - ball.dy > SCREEN_HEIGHT-BALL_DIAMETER-16){
-        mirror_v = true;
+        mirror |= VERTICAL;
         ball.y = SCREEN_HEIGHT-BALL_DIAMETER-16;
     }
 
-    // rescale from 12 to 16
-    //volatile uint8_t ball_x16 = (uint8_t)(((uint16_t)ball.x*4U)/3U);
-    //volatile uint8_t ball_y16 = (uint8_t)(((uint16_t)ball.y*4U)/3U);
     volatile uint8_t row = ball.y / 12;
     //ball with row offset of first overlapping row
     volatile uint8_t ball_x1 = ball.x + offset_array[row*4];
     // and second row
     volatile uint8_t ball_x2 = ball.x + offset_array[(row+1)*4];
 
-    if(collide_block(ball_x1/24, row, ball_x1) != 0){
-        mirror_v = true;
-    }
-    if(collide_block(ball_x1/24+1, row, ball_x1) != 0){
-        mirror_v = true;
-    }
-    if(collide_block(ball_x2/24, row+1, ball_x1) != 0){
-        mirror_v = true;
-    }
-    if(collide_block(ball_x2/24+1, row+1, ball_x1) != 0){
-        mirror_v = true;
-    }
+    mirror |= collide_block(ball_x1/24, row, ball_x1);
+    mirror |= collide_block(ball_x1/24+1, row, ball_x1);
+    mirror |= collide_block(ball_x2/24, row+1, ball_x1);
+    mirror |= collide_block(ball_x2/24+1, row+1, ball_x1);
 
-    if(mirror_h)
+    if(mirror & HORIZONTAL)
         ball.dx *= -1;
-    if(mirror_v)
+    if(mirror & VERTICAL)
         ball.dy *= -1;
 
     uint8_t pos_x = 0;
