@@ -1,5 +1,6 @@
 #include <gb/gb.h>
 #include <gb/hardware.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -15,6 +16,9 @@
 // least and most significant bit can be checked cheaper
 #define VERTICAL (0x1U)
 #define HORIZONTAL (0x80U)
+
+// index of the unbreakable block
+#define OBSTACLE (5U)
 
 // has position (x,y) and direction (dx,dy)
 // if there is a block on left and right and ball 16x16, we have x max 128
@@ -33,6 +37,28 @@ uint8_t current_real_offsets;
 // gets used by interrupt_hack.s
 // [0] is the variable, rest are offsets Y, X, Y, X
 volatile uint8_t offset_array [(SCREEN_HEIGHT/12*4)+1];
+
+uint8_t remaining_blocks;
+
+// removes block from memory and screen
+void remove_block(uint8_t x, uint8_t y){
+    uint8_t block = current_level.map[x][y];
+    if(block != OBSTACLE){
+        // remove from memory
+        current_level.map[x][y] = 0;
+        // add interface offset
+        y+=1;
+        // scale to tile size (24x16)
+        x*=3;
+        y*=2;
+        // clear on screen
+        fill_bkg_rect(x, y, 3, 2, ' ');
+        // count it
+        if(remaining_blocks != 0)
+            --remaining_blocks;
+        // TODO: score
+    }
+}
 
 // x,y of block to check
 // adjusted x coordinate of ball
@@ -57,6 +83,7 @@ uint8_t collide_block(uint8_t x, uint8_t y, uint8_t ball_x){
     uint8_t dy = abs(closest_y - relative_y);
     // implicit integer promotion, since values can get too big
     if(dx*dx + dy*dy <= 6*6){
+        remove_block(x, y);
         dy *= 2; // make the 24x12 rectangle a square
         if(dx == dy)
             return VERTICAL | HORIZONTAL;
@@ -132,15 +159,21 @@ void render_ball(){
 }
 
 void render_level(){
+    remaining_blocks = 0;
     uint8_t map[6];
     for(uint8_t x = 0; x < LEVEL_WIDTH; ++x){
         for(uint8_t y = LEVEL_HEIGHT; y > 0; --y){
-            uint8_t base = (0x80 - 6) + (current_level.map[x][y-1] * 6);
+            uint8_t block = current_level.map[x][y-1];
+            uint8_t base = (0x80 - 6) + (block * 6);
             for(uint8_t i = 0; i < 6; ++i)
                 map[i] = base++;
             set_bkg_tiles(x*3, y*2, 3, 2, map);
-            if(x < 4)
-                set_bkg_tiles((x+6)*3, y*2, 3, 2, map);
+            // TODO: use the full tilemap to draw the level
+            //if(x < 4)
+            //    set_bkg_tiles((x+6)*3, y*2, 3, 2, map);
+            if(block != 0 && block != OBSTACLE)
+                ++remaining_blocks;
+
         }
     }
 }
@@ -153,12 +186,11 @@ void init_game(){
     ball.y = 95;
     ball.dy = 2;
     offset_array[0] = 0;
-    /*for(i = 1; i < (12*4); i+=2){
-        offset_array[i] = 0;
-    }*/
+    // setup Y scrolling
     for(i = 1; i < (12*4); ++i){
         offset_array[i] = i+1;
     }
+    // and X scrolling
     for(i = 2; i < (12*4); i+=2){
         offset_array[i] = 0;
     }
@@ -194,7 +226,7 @@ void load_level(uint8_t lvl){
         add_VBL(ball_interrupt);
     }
     set_interrupts(VBL_IFLAG | LCD_IFLAG);
-    while(true){
+    while(remaining_blocks != 0){
         // move block
         for(uint8_t i = 1; i < 8; ++i){
             uint8_t offset = current_level.speed[i-1] / 2;
@@ -216,4 +248,13 @@ void load_level(uint8_t lvl){
         render_ball();
         wait_vbl_done();
     }
+    // stop scrolling
+    CRITICAL {
+        STAT_REG = 0x00;
+        remove_VBL(ball_interrupt);
+    }
+    SCY_REG = 0;
+    SCX_REG = -8;
+    // clear map
+    fill_bkg_rect(0, 0, 32, 32, ' ');
 }
