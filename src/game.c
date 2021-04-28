@@ -56,7 +56,7 @@ uint8_t collide_block(uint8_t x, uint8_t y, uint8_t ball_x){
     uint8_t dx = abs(closest_x - relative_x);
     uint8_t dy = abs(closest_y - relative_y);
     // implicit integer promotion, since values can get too big
-    if(dx*dx + dy*dy <= 12*12){
+    if(dx*dx + dy*dy <= 6*6){
         dy *= 2; // make the 24x12 rectangle a square
         if(dx == dy)
             return VERTICAL | HORIZONTAL;
