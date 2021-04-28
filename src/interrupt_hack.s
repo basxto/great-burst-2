@@ -27,6 +27,14 @@ _block_bare_interrupt::
     ldh	a, (_LYC_REG)
     add	a, #0x6
     ldh	(_LYC_REG), a
+    ; fetch values
+    ld  a, (hl+)
+    ld	h, (hl)
+    ld	l, a
+    ; move it additionally to left by a tile
+    ld  a, #-8
+    add h
+    ld  h, a
     ; busy wait through mode 3 :/
 1$:
     ldh	a, (_STAT_REG)
@@ -34,10 +42,10 @@ _block_bare_interrupt::
     ; mode 3 has least significant bit 1
     jr 	C, 1$
     ; scroll Y accordingly
-    ld  a, (hl+)
+    ld  a, l
     ldh	(_SCY_REG), a
     ; and  X
-    ld	a, (hl+)
+    ld	a, h
     ldh	(_SCX_REG), a
     ; would take too long earlier
     pop hl

@@ -38,7 +38,7 @@ volatile uint8_t offset_array [(SCREEN_HEIGHT/12*4)+1];
 // adjusted x coordinate of ball
 uint8_t collide_block(uint8_t x, uint8_t y, uint8_t ball_x){
     // we only have 8 rows of bricks
-    if(y >= 8)
+    if(y >= 8 || current_level.map[x][y] == 0)
         return 0;
 
     // offset by block width/height to avoid negative numbers
@@ -58,14 +58,12 @@ uint8_t collide_block(uint8_t x, uint8_t y, uint8_t ball_x){
     // implicit integer promotion, since values can get too big
     if(dx*dx + dy*dy <= 12*12){
         dy *= 2; // make the 24x12 rectangle a square
-        if(current_level.map[x][y] != 0){
-            if(dx == dy)
-                return VERTICAL | HORIZONTAL;
-            else if(dx > dy)
-                return HORIZONTAL;
-            else
-                return VERTICAL;
-        }
+        if(dx == dy)
+            return VERTICAL | HORIZONTAL;
+        else if(dx > dy)
+            return HORIZONTAL;
+        else
+            return VERTICAL;
     }
 
     return 0;
@@ -147,11 +145,13 @@ void render_ball(){
 void render_level(){
     uint8_t map[6];
     for(uint8_t x = 0; x < LEVEL_WIDTH; ++x){
-        for(uint8_t y = 0; y < LEVEL_HEIGHT; ++y){
-            uint8_t base = (0x80 - 6) + (current_level.map[x][y] * 6);
+        for(uint8_t y = LEVEL_HEIGHT; y > 0; --y){
+            uint8_t base = (0x80 - 6) + (current_level.map[x][y-1] * 6);
             for(uint8_t i = 0; i < 6; ++i)
                 map[i] = base++;
-            set_bkg_tiles(x*3+1, y*2+2, 3, 2, map);
+            set_bkg_tiles(x*3, y*2, 3, 2, map);
+            if(x < 4)
+                set_bkg_tiles((x+6)*3, y*2, 3, 2, map);
         }
     }
 }
@@ -179,7 +179,7 @@ void init_game(){
 // handles the ball
 void ball_interrupt(){
     SCY_REG = 0;
-    SCX_REG = 0;
+    SCX_REG = -8;
     LYC_REG = 16+5;
     //move_ball();
     //render_ball();
@@ -212,9 +212,9 @@ void load_level(uint8_t lvl){
             offset_array[i*4] += offset;
             offset_array[i*4+2] += offset;
         }
+        wait_vbl_done();
         move_ball();
         render_ball();
-        wait_vbl_done();
         wait_vbl_done();
         // move block
         for(uint8_t i = 1; i < 8; ++i){
@@ -222,9 +222,9 @@ void load_level(uint8_t lvl){
             offset_array[i*4] += offset;
             offset_array[i*4+2] += offset;
         }
+        wait_vbl_done();
         move_ball();
         render_ball();
-        wait_vbl_done();
         wait_vbl_done();
     }
 }
