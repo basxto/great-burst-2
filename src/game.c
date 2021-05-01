@@ -208,8 +208,12 @@ void init_game(){
         offset_array[i] = 0;
     }
     // setup Y scrolling
-    for(i = 1; i < (11*4); i+=2){
+    for(i = 1; i < (8*4)-2; i+=2){
         offset_array[i] = i+1-16;
+    }
+    // and for the bottom part
+    for(i = (8*4)-1; i <= (SCREEN_HEIGHT/12*4)+1; i+=2){
+        offset_array[i] = 9*8;
     }
     // setup border sprites
     for(uint8_t i = 4; i < 20; ++i){
@@ -228,11 +232,11 @@ void init_game(){
     fill_bkg_rect(0, 30, 18, 1, great_burst_bg_start+13);
     fill_bkg_rect(0, 31, 18, 1, great_burst_bg_start+16);
     // bottom
-    fill_bkg_rect(0, 23, 32, 1, great_burst_bg_start+0x12);
-    fill_bkg_rect(0, 24, 32, 1, great_burst_bg_start+0x15);
-    fill_bkg_rect(0, 25, 32, 1, great_burst_bg_start+0x14);
-    fill_bkg_rect(0, 26, 32, 1, great_burst_bg_start+0x15);
-    fill_bkg_rect(0, 27, 32, 1, great_burst_bg_start+0x16);
+    fill_win_rect(0, 23, 32, 1, great_burst_bg_start+0x12);
+    fill_win_rect(0, 24, 32, 1, great_burst_bg_start+0x15);
+    fill_win_rect(0, 25, 32, 1, great_burst_bg_start+0x15);
+    fill_win_rect(0, 26, 32, 1, great_burst_bg_start+0x16);
+    fill_win_rect(0, 27, 32, 1, great_burst_bg_start+0x14);
 }
 
 
@@ -244,6 +248,8 @@ void ball_interrupt(){
     //move_ball();
     //render_ball();
     offset_array[0] = 0;
+    // set bg to 9800
+    LCDC_REG&=~0x08U;
 }
 
 // load the blocks and such
@@ -292,6 +298,8 @@ void load_level(uint8_t lvl){
         STAT_REG = 0x00;
         remove_VBL(ball_interrupt);
     }
+    // reset bg to 9800
+    LCDC_REG&=~0x08U;
     SCY_REG = 0;
     SCX_REG = -8;
     // clear map

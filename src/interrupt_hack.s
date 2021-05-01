@@ -47,6 +47,18 @@ _block_bare_interrupt::
     ; and  X
     ld	a, h
     ldh	(_SCX_REG), a
+    ; switch to the other tilemap for certain parts
+    ldh	a, (_LYC_REG)
+    ; change tilemap only for scan lines>112
+    ld  h, #0
+    cp  a, #112
+    jr  c, 2$
+    ld h, #0b00001000
+2$:
+    ldh a, (_LCDC_REG)
+    and a, #0b11110111
+    or  a, h
+    ldh (_LCDC_REG), a
     ; would take too long earlier
     pop hl
     pop af
