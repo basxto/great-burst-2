@@ -9,4 +9,10 @@ extern const unsigned char great_burst_fg_data[];
 extern const unsigned char great_burst_blocks_data[];
 #define great_burst_blocks_size (13U*6U)
 #define great_burst_blocks_start (0x80U)
+extern const unsigned char great_burst_bg_data[];
+#define great_burst_bg_size (23U)
+#define great_burst_bg_start (0x1U)
+extern const unsigned char great_burst_special_data[];
+#define great_burst_special_size (26U)
+#define great_burst_special_start (0xffU-great_burst_special_size+1)
 #endif

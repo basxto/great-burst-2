@@ -63,7 +63,7 @@ endif
 endif
 
 OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main gfx game level interrupt_hack plonger))
-GFX=$(addprefix $(BUILDDIR),$(addsuffix .cdata, squont8ng.1bpp great_burst_fg.2bpp great_burst_blocks.2bpp))
+GFX=$(addprefix $(BUILDDIR),$(addsuffix .cdata, squont8ng.1bpp great_burst_fg.2bpp great_burst_blocks.2bpp great_burst_bg.2bpp great_burst_special.2bpp))
 
 ########################################################
 
@@ -109,6 +109,9 @@ $(BUILDDIR)%bpp.cdata: $(BUILDDIR)%bpp
 
 $(BUILDDIR)%.2bpp: gfx/%.png
 	$(SFC) tiles $(SFCFLAGS) -i $^ -d $@
+
+$(BUILDDIR)great_burst_special.2bpp: gfx/great_burst_special.png
+	$(SFC) tiles $(SFCFLAGS) -H 16 -i $^ -d $@
 
 $(BUILDDIR)%.2bpp.png: gfx/%.png
 	$(SFC) tiles $(SFCFLAGS) -i $^ -o $@

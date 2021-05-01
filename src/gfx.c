@@ -7,3 +7,9 @@ const unsigned char great_burst_fg_data[] = {
 const unsigned char great_burst_blocks_data[] = {
 #include "../build/great_burst_blocks.2bpp.cdata"
 };
+const unsigned char great_burst_bg_data[] = {
+#include "../build/great_burst_bg.2bpp.cdata"
+};
+const unsigned char great_burst_special_data[] = {
+#include "../build/great_burst_special.2bpp.cdata"
+};

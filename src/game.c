@@ -7,6 +7,7 @@
 #include "game.h"
 #include "level.h"
 #include "plonger.h"
+#include "gfx.h"
 
 #define BALL_DIAMETER (12U)
 #define BLOCK_HEIGHT (12U)
@@ -47,8 +48,6 @@ void remove_block(uint8_t x, uint8_t y){
     if(block != OBSTACLE){
         // remove from memory
         current_level.map[x][y] = 0;
-        // add interface offset
-        y+=1;
         // scale to tile size (24x16)
         x*=3;
         y*=2;
@@ -166,8 +165,8 @@ void render_level(){
     remaining_blocks = 0;
     uint8_t map[6];
     for(uint8_t x = 0; x < LEVEL_WIDTH; ++x){
-        for(uint8_t y = LEVEL_HEIGHT; y > 0; --y){
-            uint8_t block = current_level.map[x][y-1];
+        for(uint8_t y = 0; y < LEVEL_HEIGHT; ++y){
+            uint8_t block = current_level.map[x][y];
             uint8_t base = (0x80 - 6) + (block * 6);
             for(uint8_t i = 0; i < 6; ++i)
                 map[i] = base++;
@@ -189,21 +188,57 @@ void init_game(){
     ball.dx = 1;
     ball.y = 95;
     ball.dy = 2;
-    offset_array[0] = 0;
-    // setup Y scrolling
-    for(i = 1; i < (12*4); ++i){
-        offset_array[i] = i+1;
-    }
-    // and X scrolling
-    for(i = 2; i < (12*4); i+=2){
+
+    // use offset_array to store temporary tilemap
+    // it gets reinitialized after this
+    // this sets up the bottom of the background
+    offset_array[0] = great_burst_bg_start;
+    offset_array[1] = great_burst_bg_start+3;
+    offset_array[2] = great_burst_bg_start+9;
+    offset_array[3] = great_burst_bg_start+15;
+    set_bkg_tiles(-1, 29, 1, 4, offset_array);
+    offset_array[0] = great_burst_bg_start+2;
+    offset_array[1] = great_burst_bg_start+8;
+    offset_array[2] = great_burst_bg_start+14;
+    offset_array[3] = great_burst_bg_start+17;
+    set_bkg_tiles(18, 28, 1, 4, offset_array);
+
+    // everything 0 first
+    for(i = 0; i < (SCREEN_HEIGHT/12*4)+1; ++i){
         offset_array[i] = 0;
     }
+    // setup Y scrolling
+    for(i = 1; i < (11*4); i+=2){
+        offset_array[i] = i+1-16;
+    }
+    // setup border sprites
+    for(uint8_t i = 4; i < 20; ++i){
+        set_sprite_tile(i, great_burst_special_start+17);
+        move_sprite(i, 8, i*8);
+    }
+    // setup border window
+    fill_win_rect(0, 0, 1, 16, great_burst_special_start+17);
+    move_win(159, 16);
+
+    // setup background
+
+    // top
+    fill_bkg_rect(0, 28, 18, 1, great_burst_bg_start+1);
+    fill_bkg_rect(0, 29, 18, 1, great_burst_bg_start+7);
+    fill_bkg_rect(0, 30, 18, 1, great_burst_bg_start+13);
+    fill_bkg_rect(0, 31, 18, 1, great_burst_bg_start+16);
+    // bottom
+    fill_bkg_rect(0, 23, 32, 1, great_burst_bg_start+0x12);
+    fill_bkg_rect(0, 24, 32, 1, great_burst_bg_start+0x15);
+    fill_bkg_rect(0, 25, 32, 1, great_burst_bg_start+0x14);
+    fill_bkg_rect(0, 26, 32, 1, great_burst_bg_start+0x15);
+    fill_bkg_rect(0, 27, 32, 1, great_burst_bg_start+0x16);
 }
 
 
 // handles the ball
 void ball_interrupt(){
-    SCY_REG = 0;
+    SCY_REG = -16;//23*8+6;
     SCX_REG = -8;
     LYC_REG = 16+5;
     //move_ball();
