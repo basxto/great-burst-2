@@ -46,6 +46,8 @@ uint8_t current_real_offsets;
 // [0] is the variable, rest are offsets Y, X, Y, X
 volatile uint8_t offset_array [(SCREEN_HEIGHT/12*4)+1];
 
+bool demo;
+
 uint8_t remaining_blocks;
 
 void shrink_paddle(){
@@ -196,9 +198,17 @@ void move_ball(){
 // 8 on x are offscreen and 8 further the border
 // 16 on y are offscreen and 16 further the border
 void render_ball(){
-    if(ball.dx == 0 && ball.dy == 0){
-        ball.x = paddle.x + paddle.width/2 - 12/2;
-        ball.y = 144-10-12-16;
+    if(!demo){
+        if(ball.dx == 0 && ball.dy == 0){
+            ball.x = paddle.x + paddle.width/2 - 12/2;
+            ball.y = 144-10-12-16;
+        }
+    }else{
+        paddle.x = ball.x - paddle.width/2 + 12/2;
+        if(paddle.x > 200)
+            paddle.x = 0;
+        if(paddle.x > 160 - paddle.width - 16)
+            paddle.x = 160 - paddle.width - 16;
     }
     move_sprite(0, ball.x+8+8, ball.y+16+16);
     move_sprite(1, ball.x+16+8, ball.y+16+16);
@@ -314,16 +324,16 @@ void ball_interrupt(){
     LCDC_REG&=~0x08U;
     // shoot ball
     uint8_t pad = joypad();
-    if(pad&J_A && ball.dx == 0 && ball.dy == 0){
+    if((pad&J_A || demo) && ball.dx == 0 && ball.dy == 0){
         ball.dx = 1;
         ball.dy = 2;
     }
     // move pad
     pad = pad & (J_LEFT | J_RIGHT);
-    if(pad == J_LEFT && paddle.x != 0){
+    if(pad == J_LEFT && paddle.x != 0 && !demo){
         --paddle.x;
     }
-    if(pad == J_RIGHT && paddle.x + paddle.width != 160 - 16){
+    if(pad == J_RIGHT && paddle.x + paddle.width != 160 - 16 && !demo){
         ++paddle.x;
     }
 }
@@ -331,6 +341,7 @@ void ball_interrupt(){
 // load the blocks and such
 void load_level(uint8_t lvl){
     init_game();
+    demo = true;
     memcpy(current_level.map, level[lvl].map, LEVEL_HEIGHT*LEVEL_WIDTH);
     memcpy(current_level.offset, level[lvl].offset, 8);
     memcpy(current_level.speed, level[lvl].speed, 8);
