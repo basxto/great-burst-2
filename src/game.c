@@ -48,6 +48,28 @@ volatile uint8_t offset_array [(SCREEN_HEIGHT/12*4)+1];
 
 uint8_t remaining_blocks;
 
+void shrink_paddle(){
+    uint8_t width = (paddle.width/8)-1;
+    // the paddle
+    fill_win_rect(width, 25, 1, 1, great_burst_bg_start+0x15);
+    fill_win_rect(width, 26, 1, 1, great_burst_bg_start+0x16);
+    --width;
+    fill_win_rect(width, 25, 1, 1, great_burst_special_start+14);
+    fill_win_rect(width, 26, 1, 1, great_burst_special_start+15);
+    --width;
+    if(width != 0){
+        fill_win_rect(width, 25, 1, 1, great_burst_special_start+12);
+        fill_win_rect(width, 26, 1, 1, great_burst_special_start+13);
+    }
+    paddle.x += 8/2;
+    paddle.width -= 8;
+
+}
+
+void grow_paddle(){
+    //TBD
+}
+
 // removes block from memory and screen
 void remove_block(uint8_t x, uint8_t y){
     uint8_t block = current_level.map[x][y];
@@ -120,10 +142,13 @@ void move_ball(){
     if((uint8_t)ball.y < ball.dy){
         mirror |= VERTICAL;
         ball.y = 0;
+        if(paddle.width > 3*8)
+            shrink_paddle();
     }else if(ball.y - ball.dy > SCREEN_HEIGHT-BALL_DIAMETER-16){
         // ball lost
         ball.dx = 0;
         ball.dy = 0;
+        shrink_paddle();
     }
 
     volatile uint8_t row = ball.y / 12;
@@ -210,9 +235,9 @@ void render_level(){
 // set up game specific interrupts and such
 void init_game(){
     uint8_t i;
-    ball.x = 0;
+    ball.x = 1;
     ball.dx = 0;
-    ball.y = 120;
+    ball.y = 110;
     ball.dy = 0;
 
     // use offset_array to store temporary tilemap
@@ -322,7 +347,7 @@ void load_level(uint8_t lvl){
         add_VBL(ball_interrupt);
     }
     set_interrupts(VBL_IFLAG | LCD_IFLAG);
-    while(remaining_blocks != 0){
+    while(remaining_blocks != 0 && paddle.width != 8){
         render_paddle();
         // move block
         for(uint8_t i = 1; i < 8; ++i){
