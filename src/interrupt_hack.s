@@ -53,7 +53,7 @@ _block_bare_interrupt::
     ld  h, #0
     cp  a, #112
     jr  c, 2$
-    ld h, #0b00001000
+    ld  h, #0b00001000
 2$:
     ldh a, (_LCDC_REG)
     and a, #0b11110111

@@ -32,6 +32,12 @@ typedef struct {
 } Ball;
 Ball ball;
 
+typedef struct {
+    uint8_t x;
+    uint8_t width;
+} Paddle;
+Paddle paddle;
+
 // these offsets are relevant for rendering
 Level current_level;
 // offsets relevant for the ball's collision detection
@@ -161,6 +167,12 @@ void render_ball(){
     move_sprite(3, ball.x+16+8, ball.y+24+16);
 }
 
+void render_paddle(){
+    offset_array[9*4+2] = -paddle.x;
+    offset_array[10*4] = -paddle.x;
+    offset_array[10*4+2] = -paddle.x;
+}
+
 void render_level(){
     remaining_blocks = 0;
     uint8_t map[6];
@@ -237,6 +249,17 @@ void init_game(){
     fill_win_rect(0, 25, 32, 1, great_burst_bg_start+0x15);
     fill_win_rect(0, 26, 32, 1, great_burst_bg_start+0x16);
     fill_win_rect(0, 27, 32, 1, great_burst_bg_start+0x14);
+
+
+    // the paddle
+    fill_win_rect(0, 25, 1, 1, great_burst_special_start+10);
+    fill_win_rect(0, 26, 1, 1, great_burst_special_start+11);
+    fill_win_rect(1, 25, 3, 1, great_burst_special_start+12);
+    fill_win_rect(1, 26, 3, 1, great_burst_special_start+13);
+    fill_win_rect(4, 25, 1, 1, great_burst_special_start+14);
+    fill_win_rect(4, 26, 1, 1, great_burst_special_start+15);
+    paddle.x = 42;
+    paddle.width = 4;
 }
 
 
@@ -272,6 +295,7 @@ void load_level(uint8_t lvl){
     }
     set_interrupts(VBL_IFLAG | LCD_IFLAG);
     while(remaining_blocks != 0){
+        render_paddle();
         // move block
         for(uint8_t i = 1; i < 8; ++i){
             uint8_t offset = current_level.speed[i-1] / 2;
@@ -279,9 +303,11 @@ void load_level(uint8_t lvl){
             offset_array[i*4+2] += offset;
         }
         wait_vbl_done();
+        render_paddle();
         move_ball();
         render_ball();
         wait_vbl_done();
+        render_paddle();
         // move block
         for(uint8_t i = 1; i < 8; ++i){
             uint8_t offset = current_level.speed[i-1] - (current_level.speed[i-1] / 2);
@@ -289,6 +315,7 @@ void load_level(uint8_t lvl){
             offset_array[i*4+2] += offset;
         }
         wait_vbl_done();
+        render_paddle();
         move_ball();
         render_ball();
         wait_vbl_done();
