@@ -136,6 +136,15 @@ void move_ball(){
     mirror |= collide_block(ball_x2/24, row+1, ball_x1);
     mirror |= collide_block(ball_x2/24+1, row+1, ball_x1);
 
+    // collide with paddle
+    if(ball.y >= 144-10-12-16 && ball.y <= 144-10-12-16+2 && ball.dy < 0){
+        if(ball.x + 12 > paddle.x && ball.x < paddle.x + paddle.width){
+            mirror |= VERTICAL;
+            // avoid multiple collisions
+            //ball.y = 144-10-12-16;
+        }
+    }
+
     if(mirror & HORIZONTAL)
         ball.dx *= -1;
     if(mirror & VERTICAL)
@@ -259,7 +268,7 @@ void init_game(){
     fill_win_rect(4, 25, 1, 1, great_burst_special_start+14);
     fill_win_rect(4, 26, 1, 1, great_burst_special_start+15);
     paddle.x = 42;
-    paddle.width = 4;
+    paddle.width = 5*8;
 }
 
 
@@ -273,6 +282,13 @@ void ball_interrupt(){
     offset_array[0] = 0;
     // set bg to 9800
     LCDC_REG&=~0x08U;
+    uint8_t pad = joypad() & (J_LEFT | J_RIGHT);
+    if(pad == J_LEFT && paddle.x != 0){
+        --paddle.x;
+    }
+    if(pad == J_RIGHT && paddle.x + paddle.width != 160 - 16){
+        ++paddle.x;
+    }
 }
 
 // load the blocks and such
