@@ -121,8 +121,9 @@ void move_ball(){
         mirror |= VERTICAL;
         ball.y = 0;
     }else if(ball.y - ball.dy > SCREEN_HEIGHT-BALL_DIAMETER-16){
-        mirror |= VERTICAL;
-        ball.y = SCREEN_HEIGHT-BALL_DIAMETER-16;
+        // ball lost
+        ball.dx = 0;
+        ball.dy = 0;
     }
 
     volatile uint8_t row = ball.y / 12;
@@ -170,6 +171,10 @@ void move_ball(){
 // 8 on x are offscreen and 8 further the border
 // 16 on y are offscreen and 16 further the border
 void render_ball(){
+    if(ball.dx == 0 && ball.dy == 0){
+        ball.x = paddle.x + paddle.width/2 - 12/2;
+        ball.y = 144-10-12-16;
+    }
     move_sprite(0, ball.x+8+8, ball.y+16+16);
     move_sprite(1, ball.x+16+8, ball.y+16+16);
     move_sprite(2, ball.x+8+8, ball.y+24+16);
@@ -205,10 +210,10 @@ void render_level(){
 // set up game specific interrupts and such
 void init_game(){
     uint8_t i;
-    ball.x = 31;
-    ball.dx = 1;
-    ball.y = 95;
-    ball.dy = 2;
+    ball.x = 0;
+    ball.dx = 0;
+    ball.y = 120;
+    ball.dy = 0;
 
     // use offset_array to store temporary tilemap
     // it gets reinitialized after this
@@ -282,7 +287,14 @@ void ball_interrupt(){
     offset_array[0] = 0;
     // set bg to 9800
     LCDC_REG&=~0x08U;
-    uint8_t pad = joypad() & (J_LEFT | J_RIGHT);
+    // shoot ball
+    uint8_t pad = joypad();
+    if(pad&J_A && ball.dx == 0 && ball.dy == 0){
+        ball.dx = 1;
+        ball.dy = 2;
+    }
+    // move pad
+    pad = pad & (J_LEFT | J_RIGHT);
     if(pad == J_LEFT && paddle.x != 0){
         --paddle.x;
     }
