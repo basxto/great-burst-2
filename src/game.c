@@ -82,8 +82,20 @@ void replace_block(uint8_t x, uint8_t y, uint8_t block){
     // scale to tile size (24x16)
     x*=3;
     y*=2;
-
+    // uper part
     set_bkg_tiles(x, y, 3, 2, tiles);
+    if(x < 4*3)
+        set_bkg_tiles(x+(6*3), y, 3, 2, tiles);
+    else if(x == 5*3)
+        set_bkg_tiles(32-(1*3), y, 3, 2, tiles);
+    // lower part
+    y+=8*2;
+    x=(x+3*3)%(6*3);
+    set_bkg_tiles(x, y, 3, 2, tiles);
+    if(x < 4*3)
+        set_bkg_tiles(x+(6*3), y, 3, 2, tiles);
+    else if(x == 5*3)
+        set_bkg_tiles(32-(1*3), y, 3, 2, tiles);
 }
 
 void transform_block(uint8_t x, uint8_t y){
@@ -281,13 +293,7 @@ void render_level(){
     for(uint8_t x = 0; x < LEVEL_WIDTH; ++x){
         for(uint8_t y = 0; y < LEVEL_HEIGHT; ++y){
             uint8_t block = current_level.map[x][y];
-            uint8_t base = (0x80 - 6) + (block * 6);
-            for(uint8_t i = 0; i < 6; ++i)
-                map[i] = base++;
-            set_bkg_tiles(x*3, y*2, 3, 2, map);
-            // TODO: use the full tilemap to draw the level
-            //if(x < 4)
-            //    set_bkg_tiles((x+6)*3, y*2, 3, 2, map);
+            replace_block(x, y, block);
             if(block != 0 && block != OBSTACLE)
                 ++remaining_blocks;
 
@@ -418,6 +424,22 @@ void load_level(uint8_t lvl){
             uint8_t offset = current_level.speed[i-1] / 2;
             offset_array[i*4+2] += offset;
             offset_array[i*4+4] += offset;
+            // switch half every 3 blocks
+            if(offset_array[i*4+4] > 255 - 1*24){
+                // jump back to the beginning of the row
+                offset_array[i*4+4] += 3*24;
+                offset_array[i*4+2] += 3*24;
+                // switch to other half (Y offset)
+                offset_array[i*4+1]+=16*8;
+                offset_array[i*4+3]+=16*8;
+            }else if(offset_array[i*4+4] > 3*24){
+                // jump back to the beginning of the row
+                offset_array[i*4+4] -= 3*24;
+                offset_array[i*4+2] -= 3*24;
+                // switch to other half (Y offset)
+                offset_array[i*4+1]+=16*8;
+                offset_array[i*4+3]+=16*8;
+            }
         }
         wait_vbl_done();
         render_paddle();
@@ -430,6 +452,22 @@ void load_level(uint8_t lvl){
             uint8_t offset = current_level.speed[i-1] - (current_level.speed[i-1] / 2);
             offset_array[i*4+2] += offset;
             offset_array[i*4+4] += offset;
+            // switch half every 3 blocks
+            if(offset_array[i*4+4] > 255 - 1*24){
+                // jump back to the beginning of the row
+                offset_array[i*4+4] += 3*24;
+                offset_array[i*4+2] += 3*24;
+                // switch to other half (Y offset)
+                offset_array[i*4+1]+=16*8;
+                offset_array[i*4+3]+=16*8;
+            }else if(offset_array[i*4+4] > 3*24){
+                // jump back to the beginning of the row
+                offset_array[i*4+4] -= 3*24;
+                offset_array[i*4+2] -= 3*24;
+                // switch to other half (Y offset)
+                offset_array[i*4+1]+=16*8;
+                offset_array[i*4+3]+=16*8;
+            }
         }
         wait_vbl_done();
         render_paddle();
