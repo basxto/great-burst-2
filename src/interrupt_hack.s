@@ -9,6 +9,7 @@
 _block_bare_interrupt::
     push af
     push hl
+    push bc
     ; first element is a counter
     ld	hl, #_offset_array ; 12
     inc	(hl) ; 12
@@ -24,9 +25,10 @@ _block_bare_interrupt::
     sub l
     ld  h, a
     ; prepare next call
-    ldh	a, (_LYC_REG)
+    ld  c, #<(_LYC_REG)
+    ldh	a, (c)
     add	a, #0x6
-    ldh	(_LYC_REG), a
+    ldh	(c), a
     ; fetch values
     ld  a, (hl+)
     ld	h, (hl)
@@ -35,9 +37,25 @@ _block_bare_interrupt::
     ld  a, #-8
     add h
     ld  h, a
-    ; busy wait through mode 3 :/
+    ; switch to the other tilemap for certain parts
+    ldh	a, (c) ; _LYC_REG
+    ; change tilemap only for scan lines>112
+    ld  b, #0
+    cp  a, #112
+    jr  c, 2$
+    ld  b, #0b00001000
+2$:
+    ldh a, (_LCDC_REG)
+    and a, #0b11110111
+    or  a, b
+    ld  b, a
+    ; ^^^ this part can be slower than a short mode 2 + 3
+    ; but we don't care since we have more time in mode 0 then
+
+    ; busy wait through mode 3 :/ (immediately in mode 0)
+    ld  c, #<(_STAT_REG)
 1$:
-    ldh	a, (_STAT_REG)
+    ldh	a, (c)
     rrca
     ; mode 3 has least significant bit 1
     jr 	C, 1$
@@ -47,19 +65,11 @@ _block_bare_interrupt::
     ; and  X
     ld	a, h
     ldh	(_SCX_REG), a
-    ; switch to the other tilemap for certain parts
-    ldh	a, (_LYC_REG)
-    ; change tilemap only for scan lines>112
-    ld  h, #0
-    cp  a, #112
-    jr  c, 2$
-    ld  h, #0b00001000
-2$:
-    ldh a, (_LCDC_REG)
-    and a, #0b11110111
-    or  a, h
+    ; and lcd setting
+    ld  a, b
     ldh (_LCDC_REG), a
     ; would take too long earlier
+    pop bc
     pop hl
     pop af
     reti
