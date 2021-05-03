@@ -35,7 +35,7 @@ void init(){
 int main(){
     init();
     while(1){
-        for(uint8_t level = 0; level < 4; ++level){
+        for(uint8_t level = 0; level < 6; ++level){
             set_bkg_tiles(3, 8, sizeof(text_press_start)-1, 1, text_press_start);
             SHOW_BKG;
             waitpad(J_START);

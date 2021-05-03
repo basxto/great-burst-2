@@ -72,22 +72,75 @@ void grow_paddle(){
     //TBD
 }
 
+void replace_block(uint8_t x, uint8_t y, uint8_t block){
+    uint8_t tiles[6];
+
+    uint8_t base = (0x80 - 6) + (block * 6);
+    for(uint8_t i = 0; i < 6; ++i)
+        tiles[i] = base++;
+
+    // scale to tile size (24x16)
+    x*=3;
+    y*=2;
+
+    set_bkg_tiles(x, y, 3, 2, tiles);
+}
+
+void transform_block(uint8_t x, uint8_t y){
+    uint8_t block = current_level.map[x][y];
+    uint8_t new_block = block;
+    switch(block){
+        case OBSTACLE:
+            new_block = 4;
+            // obstacles don't get counted
+            ++remaining_blocks;
+            break;
+        case 2:
+            new_block = 1;
+            break;
+        case 1:
+            new_block = 2;
+        default:
+            break;
+    }
+    current_level.map[x][y] = new_block;
+    replace_block(x, y, new_block);
+}
+
 // removes block from memory and screen
 void remove_block(uint8_t x, uint8_t y){
     uint8_t block = current_level.map[x][y];
-    if(block != OBSTACLE){
-        // remove from memory
-        current_level.map[x][y] = 0;
-        // scale to tile size (24x16)
-        x*=3;
-        y*=2;
-        // clear on screen
-        fill_bkg_rect(x, y, 3, 2, ' ');
-        // count it
-        if(remaining_blocks != 0)
-            --remaining_blocks;
-        // TODO: score
+    uint8_t new_block = block;
+    switch(block){
+        case OBSTACLE:
+            // TODO: play animation
+            break;
+        case 2:
+            new_block = 1;
+            break;
+        case 4:
+            new_block = 2;
+            // transform blocks to the left and right
+            if(x != 0)
+                transform_block(x-1, y);
+            else
+                transform_block(5, y);
+
+            if(x != 5)
+                transform_block(x+1, y);
+            else
+                transform_block(0, y);
+            break;
+        case 3:
+            // TODO: spawn blocks
+        default:
+            new_block = 0;
+            if(remaining_blocks != 0)
+                --remaining_blocks;
+            break;
     }
+    current_level.map[x][y] = new_block;
+    replace_block(x, y, new_block);
 }
 
 // x,y of block to check
@@ -245,7 +298,7 @@ void render_level(){
 // set up game specific interrupts and such
 void init_game(){
     uint8_t i;
-    ball.x = 1;
+    ball.x = 72-2*8;
     ball.dx = 0;
     ball.y = 110;
     ball.dy = 0;
