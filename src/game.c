@@ -208,9 +208,9 @@ void move_ball(){
 
     volatile uint8_t row = ball.y / 12;
     //ball with row offset of first overlapping row
-    volatile uint8_t ball_x1 = ball.x + offset_array[row*4];
+    volatile uint8_t ball_x1 = ball.x + offset_array[row*4+2];
     // and second row
-    volatile uint8_t ball_x2 = ball.x + offset_array[(row+1)*4];
+    volatile uint8_t ball_x2 = ball.x + offset_array[(row+1)*4+2];
 
     mirror |= collide_block(ball_x1/24, row, ball_x1);
     mirror |= collide_block(ball_x1/24+1, row, ball_x1);
@@ -270,9 +270,9 @@ void render_ball(){
 }
 
 void render_paddle(){
-    offset_array[9*4+2] = -paddle.x;
     offset_array[10*4] = -paddle.x;
     offset_array[10*4+2] = -paddle.x;
+    offset_array[11*4] = -paddle.x;
 }
 
 void render_level(){
@@ -310,23 +310,23 @@ void init_game(){
     offset_array[1] = great_burst_bg_start+3;
     offset_array[2] = great_burst_bg_start+9;
     offset_array[3] = great_burst_bg_start+15;
-    set_bkg_tiles(-1, 29, 1, 4, offset_array);
+    set_win_tiles(-1, 29, 1, 4, offset_array);
     offset_array[0] = great_burst_bg_start+2;
     offset_array[1] = great_burst_bg_start+8;
     offset_array[2] = great_burst_bg_start+14;
     offset_array[3] = great_burst_bg_start+17;
-    set_bkg_tiles(18, 28, 1, 4, offset_array);
+    set_win_tiles(18, 28, 1, 4, offset_array);
 
     // everything 0 first
     for(i = 0; i < (SCREEN_HEIGHT/12*4)+1; ++i){
         offset_array[i] = 0;
     }
     // setup Y scrolling
-    for(i = 1; i < (8*4)-2; i+=2){
+    for(i = 1; i < (8*4); i+=2){
         offset_array[i] = i+1-16;
     }
     // and for the bottom part
-    for(i = (8*4)-1; i <= (SCREEN_HEIGHT/12*4)+1; i+=2){
+    for(i = (8*4)+1; i <= (SCREEN_HEIGHT/12*4)+1; i+=2){
         offset_array[i] = 9*8;
     }
     // setup border sprites
@@ -341,10 +341,10 @@ void init_game(){
     // setup background
 
     // top
-    fill_bkg_rect(0, 28, 18, 1, great_burst_bg_start+1);
-    fill_bkg_rect(0, 29, 18, 1, great_burst_bg_start+7);
-    fill_bkg_rect(0, 30, 18, 1, great_burst_bg_start+13);
-    fill_bkg_rect(0, 31, 18, 1, great_burst_bg_start+16);
+    fill_win_rect(0, 28, 18, 1, great_burst_bg_start+1);
+    fill_win_rect(0, 29, 18, 1, great_burst_bg_start+7);
+    fill_win_rect(0, 30, 18, 1, great_burst_bg_start+13);
+    fill_win_rect(0, 31, 18, 1, great_burst_bg_start+16);
     // bottom
     fill_win_rect(0, 23, 32, 1, great_burst_bg_start+0x12);
     fill_win_rect(0, 24, 32, 1, great_burst_bg_start+0x15);
@@ -369,12 +369,12 @@ void init_game(){
 void ball_interrupt(){
     SCY_REG = -16;//23*8+6;
     SCX_REG = -8;
-    LYC_REG = 16+5;
+    LYC_REG = 16-1;
     //move_ball();
     //render_ball();
     offset_array[0] = 0;
-    // set bg to 9800
-    LCDC_REG&=~0x08U;
+    // set bg to 9C00
+    LCDC_REG|=0x08U;
     // shoot ball
     uint8_t pad = joypad();
     if((pad&J_A || demo) && ball.dx == 0 && ball.dy == 0){
@@ -401,8 +401,8 @@ void load_level(uint8_t lvl){
 
     // copy offsets
     for(uint8_t i = 1; i < 8; ++i){
-        offset_array[i*4] = current_level.offset[i-1];
         offset_array[i*4+2] = current_level.offset[i-1];
+        offset_array[i*4+4] = current_level.offset[i-1];
     }
     render_level();
     CRITICAL {
@@ -416,8 +416,8 @@ void load_level(uint8_t lvl){
         // move block
         for(uint8_t i = 1; i < 8; ++i){
             uint8_t offset = current_level.speed[i-1] / 2;
-            offset_array[i*4] += offset;
             offset_array[i*4+2] += offset;
+            offset_array[i*4+4] += offset;
         }
         wait_vbl_done();
         render_paddle();
@@ -428,8 +428,8 @@ void load_level(uint8_t lvl){
         // move block
         for(uint8_t i = 1; i < 8; ++i){
             uint8_t offset = current_level.speed[i-1] - (current_level.speed[i-1] / 2);
-            offset_array[i*4] += offset;
             offset_array[i*4+2] += offset;
+            offset_array[i*4+4] += offset;
         }
         wait_vbl_done();
         render_paddle();
