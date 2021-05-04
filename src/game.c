@@ -8,6 +8,7 @@
 #include "level.h"
 #include "plonger.h"
 #include "gfx.h"
+#include "set_t_fix.h"
 
 #define BALL_DIAMETER (12U)
 #define BLOCK_HEIGHT (12U)
@@ -21,6 +22,10 @@
 
 // index of the unbreakable block
 #define OBSTACLE (5U)
+
+// tilemaps
+#define TM98 ((void*)0x9800)
+#define TM9C ((void*)0x9c00)
 
 // has position (x,y) and direction (dx,dy)
 // if there is a block on left and right and ball 16x16, we have x max 128
@@ -82,20 +87,20 @@ void replace_block(uint8_t x, uint8_t y, uint8_t block){
     // scale to tile size (24x16)
     x*=3;
     y*=2;
-    // uper part
-    set_bkg_tiles(x, y, 3, 2, tiles);
+    // upper part
+    set_tiles_fix(x, y, 3, 2, TM98, tiles);
     if(x < 4*3)
-        set_bkg_tiles(x+(6*3), y, 3, 2, tiles);
-    else if(x == 5*3)
-        set_bkg_tiles(32-(1*3), y, 3, 2, tiles);
+        set_tiles_fix(x+(6*3), y, 3, 2, TM98, tiles);
+    else if(x == (LEVEL_WIDTH-1)*3)
+        set_tiles_fix(32-(1*3), y, 3, 2, TM98, tiles);
     // lower part
     y+=8*2;
-    x=(x+3*3)%(6*3);
-    set_bkg_tiles(x, y, 3, 2, tiles);
+    x=(x+(LEVEL_WIDTH/2)*3)%(LEVEL_WIDTH*3);
+    set_tiles_fix(x, y, 3, 2, TM98, tiles);
     if(x < 4*3)
-        set_bkg_tiles(x+(6*3), y, 3, 2, tiles);
-    else if(x == 5*3)
-        set_bkg_tiles(32-(1*3), y, 3, 2, tiles);
+        set_tiles_fix(x+(6*3), y, 3, 2, TM98, tiles);
+    else if(x == (LEVEL_WIDTH-1)*3)
+        set_tiles_fix(32-(1*3), y, 3, 2, TM98, tiles);
 }
 
 void transform_block(uint8_t x, uint8_t y){
@@ -126,6 +131,8 @@ void remove_block(uint8_t x, uint8_t y){
     switch(block){
         case OBSTACLE:
             // TODO: play animation
+            // we don't have to write back the same tile
+            return;
             break;
         case 2:
             new_block = 1;
@@ -136,9 +143,9 @@ void remove_block(uint8_t x, uint8_t y){
             if(x != 0)
                 transform_block(x-1, y);
             else
-                transform_block(5, y);
+                transform_block((LEVEL_WIDTH-1), y);
 
-            if(x != 5)
+            if(x != (LEVEL_WIDTH-1))
                 transform_block(x+1, y);
             else
                 transform_block(0, y);
@@ -164,20 +171,20 @@ uint8_t collide_block(uint8_t x, uint8_t y, uint8_t ball_x){
 
     // offset by block width/height to avoid negative numbers
     // + ball radius to get ball center
-    uint8_t relative_x = ball_x - x*24 + 24 + 6;
-    uint8_t relative_y = ball.y - y*12 + 12 + 6;
+    uint8_t relative_x = ball_x - x*BLOCK_WIDTH + BLOCK_WIDTH + (BALL_DIAMETER/2);
+    uint8_t relative_y = ball.y - y*BLOCK_HEIGHT + BLOCK_HEIGHT + (BALL_DIAMETER/2);
 
     // break it down to circle-line intersections
 
     // get closest point on the edge
-    uint8_t closest_x = (relative_x < 24 ? 24 : (relative_x > 2*24 ? 2*24 : relative_x));
-    uint8_t closest_y = (relative_y < 12 ? 12 : (relative_y > 2*12 ? 2*12 : relative_y));
+    uint8_t closest_x = (relative_x < BLOCK_WIDTH ? BLOCK_WIDTH : (relative_x > 2*BLOCK_WIDTH ? 2*BLOCK_WIDTH : relative_x));
+    uint8_t closest_y = (relative_y < BLOCK_HEIGHT ? BLOCK_HEIGHT : (relative_y > 2*BLOCK_HEIGHT ? 2*BLOCK_HEIGHT : relative_y));
 
     // deltas
     uint8_t dx = abs(closest_x - relative_x);
     uint8_t dy = abs(closest_y - relative_y);
     // implicit integer promotion, since values can get too big
-    if(dx*dx + dy*dy <= 6*6){
+    if(dx*dx + dy*dy <= (BALL_DIAMETER/2)*(BALL_DIAMETER/2)){
         remove_block(x, y);
         dy *= 2; // make the 24x12 rectangle a square
         if(dx == dy)
@@ -218,20 +225,20 @@ void move_ball(){
         shrink_paddle();
     }
 
-    volatile uint8_t row = ball.y / 12;
+    volatile uint8_t row = ball.y / BLOCK_HEIGHT;
     //ball with row offset of first overlapping row
     volatile uint8_t ball_x1 = ball.x + offset_array[row*4+2];
     // and second row
     volatile uint8_t ball_x2 = ball.x + offset_array[(row+1)*4+2];
 
-    mirror |= collide_block(ball_x1/24, row, ball_x1);
-    mirror |= collide_block(ball_x1/24+1, row, ball_x1);
-    mirror |= collide_block(ball_x2/24, row+1, ball_x1);
-    mirror |= collide_block(ball_x2/24+1, row+1, ball_x1);
+    mirror |= collide_block(ball_x1/BLOCK_WIDTH, row, ball_x1);
+    mirror |= collide_block(ball_x1/BLOCK_WIDTH+1, row, ball_x1);
+    mirror |= collide_block(ball_x2/BLOCK_WIDTH, row+1, ball_x1);
+    mirror |= collide_block(ball_x2/BLOCK_WIDTH+1, row+1, ball_x1);
 
     // collide with paddle
-    if(ball.y >= 144-10-12-16 && ball.y <= 144-10-12-16+2 && ball.dy < 0){
-        if(ball.x + 12 > paddle.x && ball.x < paddle.x + paddle.width){
+    if(ball.y >= SCREEN_HEIGHT-10-BALL_DIAMETER-16 && ball.y <= SCREEN_HEIGHT-10-BALL_DIAMETER-16+2 && ball.dy < 0){
+        if(ball.x + BALL_DIAMETER > paddle.x && ball.x < paddle.x + paddle.width){
             mirror |= VERTICAL;
             // avoid multiple collisions
             //ball.y = 144-10-12-16;
@@ -243,6 +250,7 @@ void move_ball(){
     if(mirror & VERTICAL)
         ball.dy *= -1;
 
+    //TODO: ??
     uint8_t pos_x = 0;
     uint8_t pos_y = 0;
     for(uint8_t x = 0; x < LEVEL_WIDTH; ++x){
@@ -265,15 +273,16 @@ void move_ball(){
 void render_ball(){
     if(!demo){
         if(ball.dx == 0 && ball.dy == 0){
-            ball.x = paddle.x + paddle.width/2 - 12/2;
-            ball.y = 144-10-12-16;
+            ball.x = paddle.x + paddle.width/2 - BALL_DIAMETER/2;
+            ball.y = SCREEN_HEIGHT-10-BALL_DIAMETER-16;
         }
     }else{
-        paddle.x = ball.x - paddle.width/2 + 12/2;
+        paddle.x = ball.x - paddle.width/2 + BALL_DIAMETER/2;
+        // catch negative numbers
         if(paddle.x > 200)
             paddle.x = 0;
-        if(paddle.x > 160 - paddle.width - 16)
-            paddle.x = 160 - paddle.width - 16;
+        if(paddle.x > SCREEN_WIDTH - paddle.width - 16)
+            paddle.x = SCREEN_WIDTH - paddle.width - 16;
     }
     move_sprite(0, ball.x+8+8, ball.y+16+16);
     move_sprite(1, ball.x+16+8, ball.y+16+16);
@@ -342,7 +351,7 @@ void init_game(){
     }
     // setup border window
     fill_win_rect(0, 0, 1, 16, great_burst_special_start+17);
-    move_win(159, 16);
+    move_win(SCREEN_WIDTH-1, 16);
 
     // setup background
 
@@ -392,8 +401,29 @@ void ball_interrupt(){
     if(pad == J_LEFT && paddle.x != 0 && !demo){
         --paddle.x;
     }
-    if(pad == J_RIGHT && paddle.x + paddle.width != 160 - 16 && !demo){
+    if(pad == J_RIGHT && paddle.x + paddle.width != SCREEN_WIDTH - 16 && !demo){
         ++paddle.x;
+    }
+}
+
+inline void set_offset(uint8_t i, uint8_t offset){
+    offset_array[i*4+2] += offset;
+    offset_array[i*4+4] += offset;
+    // switch half every 3 blocks
+    if(offset_array[i*4+4] > 255 - 1*BLOCK_WIDTH){
+        // jump back to the beginning of the row
+        offset_array[i*4+4] += LEVEL_WIDTH/2*BLOCK_WIDTH;
+        offset_array[i*4+2] += LEVEL_WIDTH/2*BLOCK_WIDTH;
+        // switch to other half (Y offset)
+        offset_array[i*4+1]+=16*8;
+        offset_array[i*4+3]+=16*8;
+    }else if(offset_array[i*4+4] > LEVEL_WIDTH/2*BLOCK_WIDTH){
+        // jump back to the beginning of the row
+        offset_array[i*4+4] -= LEVEL_WIDTH/2*BLOCK_WIDTH;
+        offset_array[i*4+2] -= LEVEL_WIDTH/2*BLOCK_WIDTH;
+        // switch to other half (Y offset)
+        offset_array[i*4+1]+=16*8;
+        offset_array[i*4+3]+=16*8;
     }
 }
 
@@ -422,24 +452,7 @@ void load_level(uint8_t lvl){
         // move block
         for(uint8_t i = 1; i < 8; ++i){
             uint8_t offset = current_level.speed[i-1] / 2;
-            offset_array[i*4+2] += offset;
-            offset_array[i*4+4] += offset;
-            // switch half every 3 blocks
-            if(offset_array[i*4+4] > 255 - 1*24){
-                // jump back to the beginning of the row
-                offset_array[i*4+4] += 3*24;
-                offset_array[i*4+2] += 3*24;
-                // switch to other half (Y offset)
-                offset_array[i*4+1]+=16*8;
-                offset_array[i*4+3]+=16*8;
-            }else if(offset_array[i*4+4] > 3*24){
-                // jump back to the beginning of the row
-                offset_array[i*4+4] -= 3*24;
-                offset_array[i*4+2] -= 3*24;
-                // switch to other half (Y offset)
-                offset_array[i*4+1]+=16*8;
-                offset_array[i*4+3]+=16*8;
-            }
+            set_offset(i, offset);
         }
         wait_vbl_done();
         render_paddle();
@@ -450,24 +463,7 @@ void load_level(uint8_t lvl){
         // move block
         for(uint8_t i = 1; i < 8; ++i){
             uint8_t offset = current_level.speed[i-1] - (current_level.speed[i-1] / 2);
-            offset_array[i*4+2] += offset;
-            offset_array[i*4+4] += offset;
-            // switch half every 3 blocks
-            if(offset_array[i*4+4] > 255 - 1*24){
-                // jump back to the beginning of the row
-                offset_array[i*4+4] += 3*24;
-                offset_array[i*4+2] += 3*24;
-                // switch to other half (Y offset)
-                offset_array[i*4+1]+=16*8;
-                offset_array[i*4+3]+=16*8;
-            }else if(offset_array[i*4+4] > 3*24){
-                // jump back to the beginning of the row
-                offset_array[i*4+4] -= 3*24;
-                offset_array[i*4+2] -= 3*24;
-                // switch to other half (Y offset)
-                offset_array[i*4+1]+=16*8;
-                offset_array[i*4+3]+=16*8;
-            }
+            set_offset(i, offset);
         }
         wait_vbl_done();
         render_paddle();
