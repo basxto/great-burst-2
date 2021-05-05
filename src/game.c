@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <hUGEDriver.h>
 #include "game.h"
 #include "level.h"
 #include "plonger.h"
@@ -444,7 +445,9 @@ void load_level(uint8_t lvl){
     CRITICAL {
         LYC_REG = 16+5;
         STAT_REG = 0x40;
+        remove_VBL(hUGE_dosound);
         add_VBL(ball_interrupt);
+        add_VBL(hUGE_dosound);
     }
     set_interrupts(VBL_IFLAG | LCD_IFLAG);
     while(remaining_blocks != 0 && paddle.width != 8){
@@ -474,7 +477,9 @@ void load_level(uint8_t lvl){
     // stop scrolling
     CRITICAL {
         STAT_REG = 0x00;
+        remove_VBL(hUGE_dosound);
         remove_VBL(ball_interrupt);
+        add_VBL(hUGE_dosound);
     }
     // reset bg to 9800
     LCDC_REG&=~0x08U;

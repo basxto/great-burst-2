@@ -1,7 +1,9 @@
 #include <gb/gb.h>
+#include <hUGEDriver.h>
 #include <string.h>
 #include "gfx.h"
 #include "game.h"
+#include "../build/lost_in_hyperspace.c"
 
 const char text_press_start[] = "PRESS START!";
 const char text_won[] = "YOU WON!";
@@ -29,6 +31,10 @@ void init(){
     set_bkg_1bit_data(squont8ng_start, squont8ng_size, squont8ng_data, 3);
     // set dmg palette for shiny part
     OBP1_REG = 0x26;
+    __critical {
+        hUGE_init(&lost_in_hyperspace);
+        add_VBL(hUGE_dosound);
+    }
 }
 
 

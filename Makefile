@@ -8,6 +8,7 @@ EXT=gb
 # for not installed gbdk and sdcc
 GBDKBIN=
 SDCCBIN=
+HDBIN=res/hUGETracker/hUGEDriver/
 
 # globally installed
 LCC=$(GBDKBIN)lcc -v
@@ -19,13 +20,17 @@ endif
 CPP=$(LCC) -Wf-E
 CPPFLAGS=
 CC=$(LCC)
-CFLAGS=-Wf--opt-code-size -Wf--max-allocs-per-node50000
+CFLAGS=-Wf--opt-code-size -Wf--max-allocs-per-node50000 -I$(HDBIN)include/
 AR=$(SDCCBIN)sdar
 ARFLAGS=
 AS=$(LCC)
 ASFLAGS=-c
 LD=$(LCC)
 LDFLAGS=-Wm-yn"$$(echo "$(NAME)" | tr -d ' ' | tr '[:lower:]' '[:upper:]')" -Wm-yt0x03 -Wm-ya1 -Wl-j -Wm-yS -Wl-w
+
+RGBAS=rgbasm
+#HUGET=wine res/hUGETracker/hugetracker.exe
+RGB2SDAS=$(HDBIN)tools/rgb2sdas
 
 BUILDDIR=build/
 BINDIR=bin/
@@ -62,7 +67,7 @@ endif
 endif
 endif
 
-OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main gfx game level interrupt_hack plonger set_t_fix))
+OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main gfx game level interrupt_hack plonger set_t_fix hUGEDriver))
 GFX=$(addprefix $(BUILDDIR),$(addsuffix .cdata, squont8ng.1bpp great_burst_fg.2bpp great_burst_blocks.2bpp great_burst_bg.2bpp great_burst_special.2bpp))
 
 ########################################################
@@ -121,6 +126,17 @@ $(BUILDDIR)%.1bpp: gfx/%.png
 
 $(BUILDDIR)%.1bpp.png: gfx/%.png
 	$(SFC) tiles $(SFCFLAGS) -B 1 -i $^ -o $@
+
+# for hugedriver conversion
+# rgb2sdas does not allow to specify an output file
+$(BUILDDIR)%.obj.o: $(BUILDDIR)%.obj
+	$(RGB2SDAS) $^
+
+$(BUILDDIR)%.rel: $(BUILDDIR)%.obj.o
+	cp $^ $@
+
+$(BUILDDIR)hUGEDriver.obj: $(HDBIN)hUGEDriver.asm
+	$(RGBAS) -o$@ -i$(HDBIN) $^
 
 FILE_ID.DIZ: README.md
 	echo "$(NAME)" | tr '[:lower:]' '[:upper:]' > $@
