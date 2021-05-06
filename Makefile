@@ -67,7 +67,7 @@ endif
 endif
 endif
 
-OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main game interrupt_hack plonger set_t_fix hUGEDriver gfx level))
+OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main game interrupt_hack plonger set_t_fix hUGEDriver gfx level msx))
 GFX=$(addprefix $(BUILDDIR),$(addsuffix .cdata, squont8ng.1bpp great_burst_fg.2bpp great_burst_blocks.2bpp great_burst_blocks_cgb.2bpp great_burst_bg.2bpp great_burst_special.2bpp great_burst_blocks_cgb.pal))
 
 ########################################################

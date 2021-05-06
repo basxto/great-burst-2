@@ -1,3 +1,4 @@
+#pragma bank 1
 #include <stdint.h>
 // image data
 const uint8_t squont8ng_data[] = {

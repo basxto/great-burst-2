@@ -1,3 +1,4 @@
+#pragma bank 1
 #include "level.h"
 
 const Level level[] = {{

@@ -2,8 +2,8 @@
 #include <hUGEDriver.h>
 #include <string.h>
 #include "gfx.h"
+#include "msx.h"
 #include "game.h"
-#include "../build/lost_in_hyperspace.c"
 
 const char text_press_start[] = "PRESS START!";
 const char text_won[] = "YOU WON!";
