@@ -16,15 +16,24 @@ void init(){
     NR51_REG = 0xFF;
     // set nicer palettes etc
     cgb_compatibility();
+    set_bkg_palette(great_burst_blocks_cgb_pal_index, great_burst_blocks_cgb_pal_amount, great_burst_blocks_cgb_pal);
+    set_sprite_palette(0, 1, great_burst_blocks_cgb_pal);
+    set_sprite_palette(1, 1, great_burst_blocks_cgb_pal);
+    // replace fourth color for B version
+    set_sprite_palette_entry(1, 3, great_burst_blocks_cgb_pal[0]);
     // init game elements
     set_sprite_data(great_burst_fg_start, great_burst_fg_size, great_burst_fg_data);
     set_sprite_data(great_burst_special_start, great_burst_special_size, great_burst_special_data);
 
-    set_sprite_prop(0, S_PALETTE);
+    set_sprite_prop(0, S_PALETTE + 1);
     set_sprite_tile(0, great_burst_fg_start);
     set_sprite_tile(1, great_burst_fg_start + 1);
     set_sprite_tile(2, great_burst_fg_start + 2);
     set_sprite_tile(3, great_burst_fg_start + 3);
+    VBK_REG = 1;
+    // load cgb specific data
+    set_bkg_data(great_burst_blocks_cgb_start, great_burst_blocks_cgb_size, great_burst_blocks_cgb_data);
+    VBK_REG = 0;
     set_bkg_data(great_burst_blocks_start, great_burst_blocks_size, great_burst_blocks_data);
     set_bkg_data(great_burst_bg_start, great_burst_bg_size, great_burst_bg_data);
     // init menu font

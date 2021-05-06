@@ -26,7 +26,7 @@ ARFLAGS=
 AS=$(LCC)
 ASFLAGS=-c
 LD=$(LCC)
-LDFLAGS=-Wm-yn"$$(echo "$(NAME)" | tr -d ' ' | tr '[:lower:]' '[:upper:]')" -Wm-yt0x03 -Wm-ya1 -Wl-j -Wm-yS -Wl-w
+LDFLAGS=-Wm-yn"$$(echo "$(NAME)" | tr -d ' ' | tr '[:lower:]' '[:upper:]')" -Wm-yt0x03 -Wm-ya1 -Wl-j -Wm-yS -Wl-w -Wm-yc
 
 RGBAS=rgbasm
 #HUGET=wine res/hUGETracker/hugetracker.exe
@@ -67,8 +67,8 @@ endif
 endif
 endif
 
-OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main gfx game level interrupt_hack plonger set_t_fix hUGEDriver))
-GFX=$(addprefix $(BUILDDIR),$(addsuffix .cdata, squont8ng.1bpp great_burst_fg.2bpp great_burst_blocks.2bpp great_burst_bg.2bpp great_burst_special.2bpp))
+OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main game interrupt_hack plonger set_t_fix hUGEDriver gfx level))
+GFX=$(addprefix $(BUILDDIR),$(addsuffix .cdata, squont8ng.1bpp great_burst_fg.2bpp great_burst_blocks.2bpp great_burst_blocks_cgb.2bpp great_burst_bg.2bpp great_burst_special.2bpp great_burst_blocks_cgb.pal))
 
 ########################################################
 
@@ -115,6 +115,10 @@ $(BUILDDIR)%bpp.cdata: $(BUILDDIR)%bpp
 $(BUILDDIR)%.2bpp: gfx/%.png
 	$(SFC) tiles $(SFCFLAGS) -i $^ -d $@
 
+
+$(BUILDDIR)great_burst_blocks_cgb.2bpp: gfx/great_burst_blocks_cgb.png
+	$(SFC) tiles -Mgbc -D -F --no-remap -i $^ -d $@
+
 $(BUILDDIR)great_burst_special.2bpp: gfx/great_burst_special.png
 	$(SFC) tiles $(SFCFLAGS) -H 16 -i $^ -d $@
 
@@ -126,6 +130,13 @@ $(BUILDDIR)%.1bpp: gfx/%.png
 
 $(BUILDDIR)%.1bpp.png: gfx/%.png
 	$(SFC) tiles $(SFCFLAGS) -B 1 -i $^ -o $@
+
+# palette
+$(BUILDDIR)%pal.cdata: $(BUILDDIR)%pal
+	cat $^ | xxd -i > $@
+
+$(BUILDDIR)%.pal: gfx/%.png
+	$(SFC) palette -Mgbc --no-remap -i $^ -d $@
 
 # for hugedriver conversion
 # rgb2sdas does not allow to specify an output file
