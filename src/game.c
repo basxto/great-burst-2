@@ -442,7 +442,7 @@ void load_level(uint8_t lvl){
         offset_array[i*4+4] = current_level.offset[i-1];
     }
     render_level();
-    CRITICAL {
+    __critical{
         LYC_REG = 16+5;
         STAT_REG = 0x40;
         remove_VBL(hUGE_dosound);
@@ -475,7 +475,7 @@ void load_level(uint8_t lvl){
         wait_vbl_done();
     }
     // stop scrolling
-    CRITICAL {
+    __critical{
         STAT_REG = 0x00;
         remove_VBL(hUGE_dosound);
         remove_VBL(ball_interrupt);
@@ -486,5 +486,5 @@ void load_level(uint8_t lvl){
     SCY_REG = 0;
     SCX_REG = -8;
     // clear map
-    fill_bkg_rect(0, 0, 32, 32, ' ');
+    init_bkg(' ');
 }

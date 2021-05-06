@@ -4,16 +4,25 @@
 #include "gfx.h"
 #include "msx.h"
 #include "game.h"
+#include "sara.h"
 
 const char text_press_start[] = "PRESS START!";
 const char text_won[] = "YOU WON!";
 
 void init(){
-
+    // clear screen
+    VBK_REG = 1;
+    init_bkg(0);
+    VBK_REG = 0;
+    init_bkg(' ');
+    // init menu font (we just filled the screen with spaces)
+    set_bkg_1bit_data(squont8ng_start, squont8ng_size, squont8ng_data, 3);
     // enable sound on all channels
     NR52_REG = 0x80;
     NR50_REG = 0x77;
     NR51_REG = 0xFF;
+    // reset palette
+    BGP_REG = 0xE4;
     // set nicer palettes etc
     cgb_compatibility();
     set_bkg_palette(great_burst_blocks_cgb_pal_index, great_burst_blocks_cgb_pal_amount, great_burst_blocks_cgb_pal);
@@ -36,8 +45,6 @@ void init(){
     VBK_REG = 0;
     set_bkg_data(great_burst_blocks_start, great_burst_blocks_size, great_burst_blocks_data);
     set_bkg_data(great_burst_bg_start, great_burst_bg_size, great_burst_bg_data);
-    // init menu font
-    set_bkg_1bit_data(squont8ng_start, squont8ng_size, squont8ng_data, 3);
     // set dmg palette for shiny part
     OBP1_REG = 0x26;
     __critical {
@@ -48,6 +55,7 @@ void init(){
 
 
 int main(){
+    show_sara();
     init();
     while(1){
         for(uint8_t level = 0; level < 8; ++level){

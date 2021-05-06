@@ -19,8 +19,36 @@ const uint8_t great_burst_bg_data[] = {
 const uint8_t great_burst_special_data[] = {
 #include "../build/great_burst_special.2bpp.cdata"
 };
+const uint8_t oga_spring_2021_gb_data[] = {
+#include "../build/oga_spring_2021_gb.2bpp.cdata"
+};
+const uint8_t oga_spring_2021_cgb_data[] = {
+#include "../build/oga_spring_2021_cgb.2bpp.cdata"
+};
+const uint8_t oga_spring_2021_overlay_cgb_data[] = {
+#include "../build/oga_spring_2021_overlay_cgb.2bpp.cdata"
+};
 
 // image palettes (xxd is always 8b)
 const uint8_t great_burst_blocks_cgb_pal[] = {
 #include "../build/great_burst_blocks_cgb.pal.cdata"
+};
+const uint8_t oga_spring_2021_cgb_pal[] = {
+#include "../build/oga_spring_2021_cgb.pal.cdata"
+};
+const uint8_t oga_spring_2021_overlay_cgb_pal[] = {
+#include "../build/oga_spring_2021_overlay_cgb.pal.cdata"
+};
+
+// image tilemaps (xxd is always 8b)
+const uint8_t oga_spring_2021_gb_map[] = {
+#include "../build/oga_spring_2021_gb.map.cdata"
+};
+const uint8_t oga_spring_2021_cgb_map[] = {
+#include "../build/oga_spring_2021_cgb.map.cdata"
+};
+
+// attribute maps (palett, flipping etc)
+const uint8_t oga_spring_2021_cgb_attr[] = {
+#include "../build/oga_spring_2021_cgb.attr.cdata"
 };
