@@ -126,6 +126,9 @@ $(BUILDDIR)great_burst_blocks_cgb.2bpp: gfx/great_burst_blocks_cgb.png
 $(BUILDDIR)great_burst_special.2bpp: gfx/great_burst_special.png
 	$(SFC) tiles $(SFCFLAGS) -H 16 -i $^ -d $@
 
+$(BUILDDIR)oga_spring_2021_overlay_cgb.2bpp: gfx/oga_spring_2021_overlay_cgb.png
+	$(SFC) tiles $(SFCCFLAGS) -D -i $^ -d $@
+
 $(BUILDDIR)%.2bpp.png: gfx/%.png
 	$(SFC) tiles $(SFCFLAGS) -i $^ -o $@
 

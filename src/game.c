@@ -347,6 +347,7 @@ void init_game(){
     }
     // setup border sprites
     for(uint8_t i = 4; i < 20; ++i){
+        set_sprite_prop(i, 0);
         set_sprite_tile(i, great_burst_special_start+17);
         move_sprite(i, 8, i*8);
     }
