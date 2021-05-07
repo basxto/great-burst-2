@@ -3,6 +3,8 @@
 #include "gfx.h"
 
 void show_sara(void){
+    HIDE_BKG;
+    HIDE_SPRITES;
     // load palette
     BGP_REG = 0xE1;
     set_bkg_palette(oga_spring_2021_cgb_pal_index, oga_spring_2021_cgb_pal_amount, oga_spring_2021_cgb_pal);

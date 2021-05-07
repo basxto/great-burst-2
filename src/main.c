@@ -36,8 +36,11 @@ void init(){
 
     set_sprite_prop(0, S_PALETTE + 1);
     set_sprite_tile(0, great_burst_fg_start);
+    set_sprite_prop(1, 0);
     set_sprite_tile(1, great_burst_fg_start + 1);
+    set_sprite_prop(2, 0);
     set_sprite_tile(2, great_burst_fg_start + 2);
+    set_sprite_prop(3, 0);
     set_sprite_tile(3, great_burst_fg_start + 3);
     VBK_REG = 1;
     // load cgb specific data
