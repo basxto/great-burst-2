@@ -27,7 +27,7 @@ ARFLAGS=
 AS=$(LCC)
 ASFLAGS=-c
 LD=$(LCC)
-LDFLAGS=-Wm-yn"$$(echo "$(NAME)" | tr -d ' ' | tr '[:lower:]' '[:upper:]')" -Wm-yt0x03 -Wm-ya1 -Wl-j -Wm-yS -Wl-w -Wm-yc
+LDFLAGS=-Wm-yn"$$(echo "$(NAME)" | tr -d ' ' | tr '[:lower:]' '[:upper:]')" -Wm-yt0x03 -Wm-ya1 -Wl-j -Wm-yS -Wl-w -Wm-yc -Wm-ys
 
 RGBAS=rgbasm
 #HUGET=wine res/hUGETracker/hugetracker.exe
@@ -41,6 +41,7 @@ EMU?=sameboy
 SFC?=./res/SuperFamiconv/bin/superfamiconv
 SFCFLAGS?=-Mgb --no-remap
 SFCCFLAGS?=-Mgbc --no-remap
+SFCSFLAGS?=-Msnes --no-remap
 XXD?=xxd
 
 
@@ -70,7 +71,7 @@ endif
 endif
 
 OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main sara game plonger  interrupt_hack set_t_fix hUGEDriver gfx level msx))
-GFX=$(addprefix $(BUILDDIR),$(addsuffix .cdata, squont8ng.1bpp great_burst_fg.2bpp great_burst_blocks.2bpp great_burst_blocks_cgb.2bpp great_burst_bg.2bpp great_burst_special.2bpp oga_spring_2021_gb.2bpp oga_spring_2021_cgb.2bpp oga_spring_2021_overlay_cgb.2bpp great_burst_blocks_cgb.pal oga_spring_2021_cgb.pal oga_spring_2021_overlay_cgb.pal oga_spring_2021_gb.map oga_spring_2021_cgb.map oga_spring_2021_cgb.attr))
+GFX=$(addprefix $(BUILDDIR),$(addsuffix .cdata, squont8ng.1bpp great_burst_fg.2bpp great_burst_blocks.2bpp great_burst_blocks_cgb.2bpp great_burst_bg.2bpp great_burst_special.2bpp oga_spring_2021_gb.2bpp oga_spring_2021_cgb.2bpp oga_spring_2021_overlay_cgb.2bpp great_burst_border_sgb.4bpp great_burst_blocks_cgb.pal oga_spring_2021_cgb.pal oga_spring_2021_overlay_cgb.pal great_burst_border_sgb.pal oga_spring_2021_gb.map oga_spring_2021_cgb.map oga_spring_2021_cgb.attr great_burst_border_sgb.map))
 
 ########################################################
 
@@ -138,6 +139,9 @@ $(BUILDDIR)%.1bpp: gfx/%.png
 $(BUILDDIR)%.1bpp.png: gfx/%.png
 	$(SFC) tiles $(SFCFLAGS) -B 1 -i $^ -o $@
 
+$(BUILDDIR)%.4bpp: gfx/%.png
+	$(SFC) tiles $(SFCSFLAGS) -i $^ -d $@
+
 # palette
 $(BUILDDIR)%pal.cdata: $(BUILDDIR)%pal
 	cat $^ | xxd -i > $@
@@ -147,6 +151,9 @@ $(BUILDDIR)%.pal: gfx/%.png
 
 $(BUILDDIR)%cgb.pal: gfx/%cgb.png
 	$(SFC) palette $(SFCCFLAGS) -i $^ -d $@
+
+$(BUILDDIR)%sgb.pal: gfx/%sgb.png
+	$(SFC) palette $(SFCSFLAGS) -i $^ -d $@
 
 # tilemap
 $(BUILDDIR)%map.cdata: $(BUILDDIR)%map
@@ -161,6 +168,9 @@ $(BUILDDIR)%.map: gfx/%.png $(BUILDDIR)%.2bpp $(BUILDDIR)%.pal
 $(BUILDDIR)%cgb.map $(BUILDDIR)%cgb.attr: gfx/%cgb.png $(BUILDDIR)%cgb.2bpp $(BUILDDIR)%cgb.pal
 	$(SFC) map -Mgbc -i $< -t $(BUILDDIR)$*cgb.2bpp -p $(BUILDDIR)$*cgb.pal -d $(BUILDDIR)$*cgb.mapattr
 	$(DINTLV) $(BUILDDIR)$*cgb.mapattr $(BUILDDIR)$*cgb.map $(BUILDDIR)$*cgb.attr
+
+$(BUILDDIR)%sgb.map $(BUILDDIR)%sgb.attr: gfx/%sgb.png $(BUILDDIR)%sgb.4bpp $(BUILDDIR)%sgb.pal
+	$(SFC) map -Msnes -i $< -t $(BUILDDIR)$*sgb.4bpp -p $(BUILDDIR)$*sgb.pal -d $@
 
 # for hugedriver conversion
 # rgb2sdas does not allow to specify an output file

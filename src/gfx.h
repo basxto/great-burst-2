@@ -29,6 +29,7 @@ extern const uint8_t oga_spring_2021_cgb_data[];
 extern const uint8_t oga_spring_2021_overlay_cgb_data[];
 #define oga_spring_2021_overlay_cgb_data_size (7U*4U)
 #define oga_spring_2021_overlay_cgb_data_start (0x80U)
+extern const uint8_t great_burst_border_sgb_data[];
 
 // palettes
 extern const uint16_t great_burst_blocks_cgb_pal[];
@@ -40,10 +41,12 @@ extern const uint16_t oga_spring_2021_cgb_pal[];
 extern const uint16_t oga_spring_2021_overlay_cgb_pal[];
 #define oga_spring_2021_overlay_cgb_pal_amount (8U)
 #define oga_spring_2021_overlay_cgb_pal_index (0U)
+extern const uint8_t great_burst_border_sgb_pal[];
 
 // tile map
 extern const uint8_t oga_spring_2021_gb_map[];
 extern const uint8_t oga_spring_2021_cgb_map[];
+extern const uint8_t great_burst_border_sgb_map[];
 
 // attribute map
 extern const uint8_t oga_spring_2021_cgb_attr[];

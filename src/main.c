@@ -9,6 +9,40 @@
 const char text_press_start[] = "PRESS START!";
 const char text_won[] = "YOU WON!";
 
+// based on example from gbdk-2020
+#define SGB_TRANSFER(A,B) map_buf[0]=(A),map_buf[1]=(B),sgb_transfer(map_buf)
+
+void set_sgb_border(void){
+    if (sgb_check()) {
+        unsigned char map_buf[20];
+        SGB_TRANSFER((SGB_MASK_EN << 3) | 1, 1);
+        BGP_REG = OBP0_REG = OBP1_REG = 0xE4U;
+        SCX_REG = SCY_REG = 0U;
+        UBYTE tmp_lcdc = LCDC_REG;
+
+        HIDE_SPRITES, HIDE_WIN, SHOW_BKG;
+        DISPLAY_ON;
+
+        UBYTE i = 0U;
+        for (UBYTE y = 0; y != 14U; ++y) {
+            UBYTE * dout = map_buf;
+            for(UBYTE x = 0U; x != 20U; ++x, *dout++ = i++);
+            set_bkg_tiles(0, y, 20, 1, map_buf);
+        }
+
+        set_bkg_data(0, 64, great_burst_border_sgb_data);
+        SGB_TRANSFER((SGB_CHR_TRN << 3) | 1, 0);
+        set_bkg_data(0, 112, great_burst_border_sgb_map);
+        set_bkg_data(128, 4, great_burst_border_sgb_pal);
+        SGB_TRANSFER((SGB_PCT_TRN << 3) | 1, 0);
+
+        // restore screen
+        LCDC_REG = tmp_lcdc;
+        fill_bkg_rect(0, 0, 20, 18, 0);
+        SGB_TRANSFER((SGB_MASK_EN << 3) | 1, 0);
+    }
+}
+
 void init(){
     // clear screen
     VBK_REG = 1;
@@ -58,6 +92,7 @@ void init(){
 
 
 int main(){
+    set_sgb_border();
     show_sara();
     init();
     while(1){
