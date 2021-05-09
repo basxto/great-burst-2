@@ -78,30 +78,87 @@ void grow_paddle(){
     //TBD
 }
 
+// set attributes and map of block
+void set_attribute_block(uint8_t x, uint8_t y, const uint8_t *attr, const uint8_t *tiles){
+    VBK_REG = 1;
+    set_tiles_fix(x, y, 3, 2, TM98, attr);
+    VBK_REG = 0;
+    set_tiles_fix(x, y, 3, 2, TM98, tiles);
+}
+
 void replace_block(uint8_t x, uint8_t y, uint8_t block){
+    uint8_t attributes[6];
     uint8_t tiles[6];
+    uint8_t i;
 
     uint8_t base = (0x80 - 6) + (block * 6);
-    for(uint8_t i = 0; i < 6; ++i)
+    uint8_t base_attribute = 4;
+    // choose palette
+    switch(block){
+        case 1:
+            base_attribute = 0;
+            break;
+        case 2:
+            base_attribute = 2;
+            break;
+        case 3:
+        case 4:
+            if(x%2 == 0)
+                base_attribute = 0;
+            else
+                base_attribute = 2;
+            break;
+        case 0:
+        default:
+            break;
+    }
+
+    // use other vram bank
+    if(block > 1)
+        base_attribute |= 8;
+    // generate block
+    for(i = 0; i < 6; ++i){
         tiles[i] = base++;
+    }
+    // generate attributes
+    for(i = 0; i < 3; ++i){
+        attributes[i] = base_attribute;
+        // alternate colors
+        if(block == 3 || block == 4){
+            base_attribute ^= 2;
+        }
+    }
+    // shift palette
+    if((base_attribute & 0x7) != 4)
+        ++base_attribute;
+    for(i = 3; i < 6; ++i){
+        attributes[i] = base_attribute;
+        if(block == 3 || block == 4){
+            base_attribute ^= 2;
+        }
+    }
 
     // scale to tile size (24x16)
     x*=3;
     y*=2;
     // upper part
-    set_tiles_fix(x, y, 3, 2, TM98, tiles);
-    if(x < 4*3)
-        set_tiles_fix(x+(6*3), y, 3, 2, TM98, tiles);
-    else if(x == (LEVEL_WIDTH-1)*3)
-        set_tiles_fix(32-(1*3), y, 3, 2, TM98, tiles);
+    set_attribute_block(x, y, attributes, tiles);
+    if(x < 4*3){
+        set_attribute_block(x+(6*3), y, attributes, tiles);
+    }
+    else if(x == (LEVEL_WIDTH-1)*3){
+        set_attribute_block(32-(1*3), y, attributes, tiles);
+    }
     // lower part
     y+=8*2;
     x=(x+(LEVEL_WIDTH/2)*3)%(LEVEL_WIDTH*3);
-    set_tiles_fix(x, y, 3, 2, TM98, tiles);
-    if(x < 4*3)
-        set_tiles_fix(x+(6*3), y, 3, 2, TM98, tiles);
-    else if(x == (LEVEL_WIDTH-1)*3)
-        set_tiles_fix(32-(1*3), y, 3, 2, TM98, tiles);
+    set_attribute_block(x, y, attributes, tiles);
+    if(x < 4*3){
+        set_attribute_block(x+(6*3), y, attributes, tiles);
+    }
+    else if(x == (LEVEL_WIDTH-1)*3){
+        set_attribute_block(32-(1*3), y, attributes, tiles);
+    }
 }
 
 void transform_block(uint8_t x, uint8_t y){

@@ -46,7 +46,8 @@ void set_sgb_border(void){
 void init(){
     // clear screen
     VBK_REG = 1;
-    init_bkg(0);
+    init_bkg(4);
+    init_win(4);
     VBK_REG = 0;
     init_bkg(' ');
     // init menu font (we just filled the screen with spaces)
@@ -60,10 +61,10 @@ void init(){
     // set nicer palettes etc
     cgb_compatibility();
     set_bkg_palette(great_burst_blocks_cgb_pal_index, great_burst_blocks_cgb_pal_amount, great_burst_blocks_cgb_pal);
-    set_sprite_palette(0, 1, great_burst_blocks_cgb_pal);
-    set_sprite_palette(1, 1, great_burst_blocks_cgb_pal);
+    set_sprite_palette(0, 1, great_burst_blocks_cgb_pal+4*4);
+    set_sprite_palette(1, 1, great_burst_blocks_cgb_pal+4*4);
     // replace fourth color for B version
-    set_sprite_palette_entry(1, 3, great_burst_blocks_cgb_pal[0]);
+    set_sprite_palette_entry(1, 3, great_burst_blocks_cgb_pal[4*4]);
     // init game elements
     set_sprite_data(great_burst_fg_start, great_burst_fg_size, great_burst_fg_data);
     set_sprite_data(great_burst_special_start, great_burst_special_size, great_burst_special_data);
@@ -96,7 +97,7 @@ int main(){
     show_sara();
     init();
     while(1){
-        for(uint8_t level = 8; level < 10; ++level){
+        for(uint8_t level = 2; level < 10; ++level){
             set_bkg_tiles(3, 8, sizeof(text_press_start)-1, 1, text_press_start);
             SHOW_BKG;
             waitpad(J_START);
