@@ -166,6 +166,17 @@ void remove_block(uint8_t x, uint8_t y){
 // x,y of block to check
 // adjusted x coordinate of ball
 uint8_t collide_block(uint8_t x, uint8_t y, uint8_t ball_x){
+    // fix if scrolled to the left
+    if(ball_x > 255 - 2*8){
+        x += 6;
+        ball_x += 6*24;
+    }
+    // fix if too far right
+    while(x >= 6){
+        x -= 6;
+        ball_x -= 6*24;
+    }
+
     // we only have 8 rows of bricks
     if(y >= 8 || current_level.map[x][y] == 0)
         return 0;
@@ -229,8 +240,12 @@ void move_ball(){
     volatile uint8_t row = ball.y / BLOCK_HEIGHT;
     //ball with row offset of first overlapping row
     volatile uint8_t ball_x1 = ball.x + offset_array[row*4+2];
+    if(offset_array[row*4+1] >= 16*8)
+        ball_x1 += 3*24;
     // and second row
     volatile uint8_t ball_x2 = ball.x + offset_array[(row+1)*4+2];
+    if(offset_array[(row+1)*4+1] >= 16*8)
+        ball_x1 += 3*24;
 
     mirror |= collide_block(ball_x1/BLOCK_WIDTH, row, ball_x1);
     mirror |= collide_block(ball_x1/BLOCK_WIDTH+1, row, ball_x1);

@@ -96,7 +96,7 @@ int main(){
     show_sara();
     init();
     while(1){
-        for(uint8_t level = 0; level < 8; ++level){
+        for(uint8_t level = 8; level < 10; ++level){
             set_bkg_tiles(3, 8, sizeof(text_press_start)-1, 1, text_press_start);
             SHOW_BKG;
             waitpad(J_START);
