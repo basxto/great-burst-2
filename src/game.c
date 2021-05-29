@@ -2,7 +2,6 @@
 #include <gb/hardware.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 #include <hUGEDriver.h>
 #include "game.h"
@@ -502,9 +501,9 @@ inline void set_offset(uint8_t i, uint8_t offset){
 }
 
 // load the blocks and such
-void load_level(uint8_t lvl){
+uint8_t  load_level(uint8_t lvl, bool d){
     init_game();
-    demo = true;
+    demo = d;
     memcpy(current_level.map, level[lvl].map, LEVEL_HEIGHT*LEVEL_WIDTH);
     memcpy(current_level.offset, level[lvl].offset, 8);
     memcpy(current_level.speed, level[lvl].speed, 8);
@@ -560,4 +559,9 @@ void load_level(uint8_t lvl){
     SCX_REG = -8;
     // clear map
     init_bkg(' ');
+    if(remaining_blocks == 0 && !demo){
+        return 1;
+    }else {
+        return 0;
+    }
 }

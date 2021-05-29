@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "menu.h"
 #include "font.h"
+#include "game.h"
 
 // max width that can be dislayed at a time
 // without borders
@@ -64,10 +65,47 @@ uint8_t window_choice(uint8_t y, char* str){
     return selection;
 }
 
+void level_menu(void){
+    set_win_tiles(4, 2, 5, 1, "LEVEL");
+    uint8_t selection = window_choice(4, "1\n2\n3\n4\n5");
+    SHOW_SPRITES;
+    load_level(selection, false);
+    HIDE_SPRITES;
+    HIDE_BKG;
+    move_win(7, 0);
+}
 
 void main_menu(void){
     SHOW_WIN;
-    window_choice(2, "START\nRANDOM\nOPTIONS\nCREDITS");
-    HIDE_WIN;
-    return;
+    while(1){
+        set_win_tiles(4, 2, 4, 1, "MENU");
+        uint8_t selection = window_choice(4, "START\nLEVEL\nRANDOM\nDEMO\nOPTIONS\nCREDITS");
+        switch(selection){
+            case 0:
+                SHOW_SPRITES;
+                for(uint8_t level = 0; level < 10; ++level){
+                    if(load_level(level, false) == 0)
+                        break; // player lost
+                }
+                HIDE_SPRITES;
+                HIDE_BKG;
+                move_win(7, 0);
+                break;
+            case 1:
+                level_menu();
+                break;
+            case 3:
+                SHOW_SPRITES;
+                load_level(2, true);
+                load_level(4, true);
+                load_level(6, true);
+                HIDE_SPRITES;
+                HIDE_BKG;
+                move_win(7, 0);
+            default:
+                break;
+        }
+    }
+    //HIDE_WIN;
+    //return;
 }

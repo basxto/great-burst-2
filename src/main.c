@@ -110,7 +110,7 @@ int main(){
             waitpad(J_START);
             SHOW_SPRITES;
             SHOW_WIN;
-            load_level(level);
+            load_level(level, false);
             HIDE_WIN;
             HIDE_SPRITES;
             HIDE_BKG;

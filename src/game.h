@@ -1,5 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
 #include <stdint.h>
-void load_level(uint8_t level);
+#include <stdbool.h>
+uint8_t load_level(uint8_t level, bool demo);
 #endif
