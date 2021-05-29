@@ -70,7 +70,7 @@ endif
 endif
 endif
 
-OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main sara game plonger  interrupt_hack set_t_fix hUGEDriver gfx level msx))
+OBJ=$(addprefix $(BUILDDIR),$(addsuffix .rel, main sara game menu plonger interrupt_hack set_t_fix hUGEDriver gfx level msx))
 GFX=$(addprefix $(BUILDDIR),$(addsuffix .cdata, squont8ng.1bpp great_burst_fg.2bpp great_burst_blocks.2bpp great_burst_blocks_cgb.2bpp great_burst_bg.2bpp great_burst_special.2bpp oga_spring_2021_gb.2bpp oga_spring_2021_cgb.2bpp oga_spring_2021_overlay_cgb.2bpp great_burst_border_sgb.4bpp great_burst_blocks_cgb.pal oga_spring_2021_cgb.pal oga_spring_2021_overlay_cgb.pal great_burst_border_sgb.pal oga_spring_2021_gb.map oga_spring_2021_cgb.map oga_spring_2021_cgb.attr great_burst_border_sgb.map))
 
 ########################################################

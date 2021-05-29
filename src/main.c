@@ -5,6 +5,7 @@
 #include "msx.h"
 #include "game.h"
 #include "sara.h"
+#include "menu.h"
 
 const char text_press_start[] = "PRESS START!";
 const char text_won[] = "YOU WON!";
@@ -96,10 +97,16 @@ int main(){
     set_sgb_border();
     show_sara();
     init();
+    set_bkg_tiles(3, 8, sizeof(text_press_start)-1, 1, text_press_start);
+    SHOW_BKG;
+    waitpadup();
+    waitpad(J_START);
+    main_menu();
     while(1){
         for(uint8_t level = 2; level < 10; ++level){
             set_bkg_tiles(3, 8, sizeof(text_press_start)-1, 1, text_press_start);
             SHOW_BKG;
+            waitpadup();
             waitpad(J_START);
             SHOW_SPRITES;
             SHOW_WIN;
