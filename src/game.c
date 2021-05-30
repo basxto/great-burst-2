@@ -301,7 +301,7 @@ void move_ball(){
     // and second row
     volatile uint8_t ball_x2 = ball.x + offset_array[(row+1)*4+2];
     if(offset_array[(row+1)*4+1] >= 16*8)
-        ball_x1 += 3*24;
+        ball_x2 += 3*24;
 
     mirror |= collide_block(ball_x1/BLOCK_WIDTH, row, ball_x1);
     mirror |= collide_block(ball_x1/BLOCK_WIDTH+1, row, ball_x1);
